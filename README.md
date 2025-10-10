@@ -11,15 +11,18 @@
 2) Website will open 
 ```
     - Ask for camera permission
+```
 
         |  |  |
         |:-----------------------|:--------------------------------------|
         | User gives the paermission | Continue with flow |
         | User denied the permission | Show pop up with close option and message:- "Camera needed to see 3D dishes" |
 
+```
     - User will see the beautiful hotel homepage
 
     - Homepage contains different options, sections, layouts:-
+```
 
         |  | Description |
         |:---------|:--------------------------------------|
@@ -30,7 +33,7 @@
         | **Help and Feedback** | collect user queries, issues, feedbacks for improment | 
         | **Guid**| step by step guid to place order for new users | 
 
-```
+
 
 3) User will select the dish
 ```
