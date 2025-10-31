@@ -1,0 +1,70 @@
+# Large 3D model files - store in Google Drive instead
+3D_models/dish_models/
+3D_models/dish_images_processed/
+3D_models/dish_images_original
+# Workspace directories (temporary processing files)
+**/colmap_workspace/
+**/openmvs_workspace/
+**/output/
+
+# 3D file formats (large files)
+*.ply
+*.mvs
+*.glb
+*.obj
+*.mtl
+*.stl
+*.dae
+*.fbx
+
+# Image processing
+*.db
+*.db-shm
+*.db-wal
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
