@@ -2,11 +2,11 @@
 
 ## Working Flow
 
-### 1) User scan the QR
+### 1. User scan the QR
 - link will generate
 - User opens the link
 
-### 2) Website will open 
+### 2. Website will open 
 - Ask for camera permission
 
 | Action | Result |
@@ -26,7 +26,7 @@
 | **Help and Feedback** | collect user queries, issues, feedbacks for improment | 
 | **Guid**| step by step guid to place order for new users | 
 
-### 3) User will select the dish
+### 3. User will select the dish
 - User can clicks:-
 
 | Option | Action |
@@ -35,30 +35,30 @@
 | 3D view | to see the actual dish through AR |
 | Dish info | To check Ingredients, Spicy level, Origin, Other Names |
 
-### 4) AR environment will open
+### 4. AR environment will open
 - Camera feed start for AR
 - Guid new user for to find base and perfect environment for user (skip option)
 - 3D model will load
 - show Ingredients, Spicy level, Origin, Other Names into AR environment by pointing to 3D model
 
-### 5) User can see the 3D visualization of model
+### 5. User can see the 3D visualization of model
 - They can test The Dish Digitally
 - Can see quality and type of dish
 - ingrediants
 - Spicy level
 
-### 6) User will place the order
+### 6. User will place the order
 - User can click on the Top-Right corner to add dish into cart
 - Click on cart option to Add to cancel order, edit order, place order
 - User can see the waiting time
 
-### 7) Hotel counter will receive the order with table number
+### 7. Hotel counter will receive the order with table number
 - Counter receive orders
 - They can accept or decline orders with reason
 - If order get accept, weater will start serving process
 - If order get decline, weater will discuss the issue with customer
 
-### 8) End
+### 8. End
 
 ---
 

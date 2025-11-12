@@ -1,7 +1,6 @@
 # Large 3D model files - store in Google Drive instead
-3D_models/dish_models/
-3D_models/dish_images_processed/
-3D_models/dish_images_original
+AR_environment/dish_models
+frontend/images
 # Workspace directories (temporary processing files)
 **/colmap_workspace/
 **/openmvs_workspace/

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Digital Plate - Premium Dining Experience</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-utensils"></i>
+                <span>The Digital Plate</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#menu" class="nav-link">Menu</a></li>
+                <li><a href="#order" class="nav-link">Orders</a></li>
+                <li><a href="#feedback" class="nav-link">Feedback</a></li>
+                <li><a href="#ai-agent" class="nav-link">AI Assistant</a></li>
+            </ul>
+            <div class="cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="text-reveal">Welcome to</span>
+                <span class="text-reveal delay-1">The Digital Plate</span>
+            </h1>
+            <p class="hero-subtitle text-reveal delay-2">Experience Culinary Excellence</p>
+            <p class="hero-tagline text-reveal delay-3">Where Tradition Meets Innovation</p>
+            
+            <!-- Hotel Info Cards -->
+            <div class="info-cards">
+                <div class="info-card fade-in-up delay-4">
+                    <div class="info-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3>4.8/5</h3>
+                    <p>Customer Rating</p>
+                    <span class="info-badge">Excellent</span>
+                </div>
+                <div class="info-card fade-in-up delay-5">
+                    <div class="info-icon">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <h3>50+</h3>
+                    <p>Special Dishes</p>
+                    <span class="info-badge">Curated</span>
+                </div>
+                <div class="info-card fade-in-up delay-6">
+                    <div class="info-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>10K+</h3>
+                    <p>Happy Customers</p>
+                    <span class="info-badge">Served</span>
+                </div>
+            </div>
+
+            <!-- Special Dishes Showcase -->
+            <div class="special-dishes">
+                <h2 class="section-title fade-in">Chef's Special</h2>
+                <div class="dishes-grid">
+                    <div class="dish-card special-card">
+                        <div class="dish-image">
+                            <img src="images/samosa.jpg" alt="Samosa">
+                            <div class="dish-overlay">
+                                <button class="btn-view-ar">
+                                    <i class="fas fa-cube"></i> View in AR
+                                </button>
+                            </div>
+                        </div>
+                        <div class="dish-info">
+                            <h3>Crispy Samosa</h3>
+                            <p>Golden fried pastry with spiced filling</p>
+                            <span class="price">$4.99</span>
+                        </div>
+                    </div>
+                    <div class="dish-card special-card">
+                        <div class="dish-image">
+                            <img src="images/pizza.jpg" alt="Pizza">
+                            <div class="dish-overlay">
+                                <button class="btn-view-ar">
+                                    <i class="fas fa-cube"></i> View in AR
+                                </button>
+                            </div>
+                        </div>
+                        <div class="dish-info">
+                            <h3>Artisan Pizza</h3>
+                            <p>Wood-fired with fresh toppings</p>
+                            <span class="price">$18.99</span>
+                        </div>
+                    </div>
+                    <div class="dish-card special-card">
+                        <div class="dish-image">
+                            <img src="images/Monster_Energy_Drink.jpg" alt="Monster Energy Drink">
+                            <div class="dish-overlay">
+                                <button class="btn-view-ar">
+                                    <i class="fas fa-cube"></i> View in AR
+                                </button>
+                            </div>
+                        </div>
+                        <div class="dish-info">
+                            <h3>Monster Energy</h3>
+                            <p>Refreshing energy boost</p>
+                            <span class="price">$3.99</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scroll-indicator">
+                <span>Scroll to explore menu</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="menu-section">
+        <div class="container">
+            <h2 class="section-title">Our Menu</h2>
+            <p class="section-subtitle">Discover our exquisite collection of dishes</p>
+
+            <!-- Menu Categories -->
+            <div class="menu-categories">
+                <button class="category-btn active" data-category="all">All</button>
+                <button class="category-btn" data-category="appetizers">Appetizers</button>
+                <button class="category-btn" data-category="main">Main Course</button>
+                <button class="category-btn" data-category="desserts">Desserts</button>
+                <button class="category-btn" data-category="beverages">Beverages</button>
+            </div>
+
+            <!-- Menu Items Grid -->
+            <div class="menu-grid" id="menuGrid">
+                <!-- Menu items will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Orders Section -->
+    <section id="order" class="order-section">
+        <div class="container">
+            <h2 class="section-title">Your Orders</h2>
+            <div class="orders-container">
+                <div class="cart-items" id="cartItems">
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-basket"></i>
+                        <p>Your cart is empty</p>
+                        <button class="btn-primary" onclick="scrollToSection('menu')">Browse Menu</button>
+                    </div>
+                </div>
+                <div class="order-summary">
+                    <h3>Order Summary</h3>
+                    <div class="summary-item">
+                        <span>Subtotal</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Tax (10%)</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Delivery</span>
+                        <span id="delivery">$5.00</span>
+                    </div>
+                    <hr>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span id="total">$0.00</span>
+                    </div>
+                    <button class="btn-checkout">
+                        <span>Proceed to Checkout</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feedback Section -->
+    <section id="feedback" class="feedback-section">
+        <div class="container">
+            <h2 class="section-title">Share Your Experience</h2>
+            <p class="section-subtitle">We'd love to hear from you</p>
+
+            <div class="feedback-container">
+                <form class="feedback-form" id="feedbackForm">
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rating</label>
+                        <div class="star-rating">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Feedback</label>
+                        <textarea rows="5" placeholder="Tell us about your experience..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        <span>Submit Feedback</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+
+                <div class="reviews-container">
+                    <h3>Recent Reviews</h3>
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="avatar">JD</div>
+                                <div>
+                                    <h4>John Doe</h4>
+                                    <div class="review-stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="review-date">2 days ago</span>
+                        </div>
+                        <p>Amazing food and excellent service! The truffle pasta was absolutely divine.</p>
+                    </div>
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="avatar">SM</div>
+                                <div>
+                                    <h4>Sarah Miller</h4>
+                                    <div class="review-stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="review-date">1 week ago</span>
+                        </div>
+                        <p>Great atmosphere and delicious dishes. The AR menu feature is innovative!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Agent Section -->
+    <section id="ai-agent" class="ai-section">
+        <div class="container">
+            <h2 class="section-title">AI Assistant</h2>
+            <p class="section-subtitle">Let our AI help you choose the perfect meal</p>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <p>Hello! I'm your digital dining assistant. How can I help you today?</p>
+                            <div class="quick-actions">
+                                <button class="quick-btn">Recommend a dish</button>
+                                <button class="quick-btn">Dietary restrictions</button>
+                                <button class="quick-btn">Today's specials</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chatInput" placeholder="Type your message...">
+                    <button class="btn-send" id="btnSend">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>The Digital Plate</h3>
+                    <p>Experience the future of dining with our innovative digital menu and AR experience.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#menu">Menu</a></li>
+                        <li><a href="#order">Orders</a></li>
+                        <li><a href="#feedback">Feedback</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> info@digitalplate.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Gourmet Street, Food City</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 The Digital Plate. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal for AR View -->
+    <div class="modal" id="arModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>AR Environment</h2>
+            <div class="ar-container">
+                <div class="ar-placeholder">
+                    <i class="fas fa-cube"></i>
+                    <p>AR Experience Coming Soon</p>
+                    <p class="ar-note">View this dish in 3D using your device camera</p>
+                    <button class="btn-primary">Enable Camera Access</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
