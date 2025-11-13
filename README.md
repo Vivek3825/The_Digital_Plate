@@ -68,11 +68,11 @@
 
 | Section | Description | Status |
 |:---------|:--------------------------------------|:--------:|
-| **Home Overview** | Attractively showcased (Hotel images, Positive feedback and rating, Badge, certifications) | ❌ Not Started |
-| **Menu list** | List all dishes with price, user reviews, short description (sort by option) | ❌ Not Started |
-| **Manage orders** | Add to cart, cancel order, edit order, place order | ❌ Not Started |
-| **Offers and todays special** | daily offers, special items and combos | ❌ Not Started |
-| **Help and Feedback** | collect user queries, issues, feedbacks for improment | ❌ Not Started |
+| **Home Overview** | Attractively showcased (Hotel images, Positive feedback and rating, Badge, certifications) | Started |
+| **Menu list** | List all dishes with price, user reviews, short description (sort by option) | Started |
+| **Manage orders** | Add to cart, cancel order, edit order, place order | Started |
+| **Offers and todays special** | daily offers, special items and combos | Started |
+| **Help and Feedback** | collect user queries, issues, feedbacks for improment | Not Started |
 | **Guid**| step by step guid to place order for new users | ❌ Not Started |
 
 
