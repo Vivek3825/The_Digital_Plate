@@ -74,3 +74,22 @@
 | **Offers and todays special** | daily offers, special items and combos | ❌ Not Started |
 | **Help and Feedback** | collect user queries, issues, feedbacks for improment | ❌ Not Started |
 | **Guid**| step by step guid to place order for new users | ❌ Not Started |
+
+
+## Frontend Dvelopment
+```
+index.html
+script.js
+style.css
+
+```
+
+**five section**
+```
+Home
+Menu
+Orders
+Feedback
+AI Assistant
+
+```

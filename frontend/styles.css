@@ -253,17 +253,6 @@ body {
     }
 }
 
-@keyframes revealText {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 /* Info Cards */
 .info-cards {
     display: grid;
@@ -324,19 +313,19 @@ body {
     animation: fadeIn 1s ease forwards;
 }
 
-@keyframes fadeIn {
-    to { opacity: 1; }
-}
-
 .fade-in-up {
     opacity: 0;
     animation: fadeInUp 0.8s ease forwards;
 }
 
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(50px);
+        transform: translateY(30px);
     }
     to {
         opacity: 1;
@@ -391,15 +380,6 @@ body {
 @keyframes sparkle {
     0%, 100% { opacity: 1; transform: translateX(-50%) translateX(-180px) scale(1); }
     50% { opacity: 0.5; transform: translateX(-50%) translateX(-180px) scale(1.2); }
-}
-
-.fade-in {
-    opacity: 0;
-    animation: fadeIn 1s ease forwards;
-}
-
-@keyframes fadeIn {
-    to { opacity: 1; }
 }
 
 .dishes-grid {
