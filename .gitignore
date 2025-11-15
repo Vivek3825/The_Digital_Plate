@@ -1,15 +1,15 @@
 # Large 3D model files - store in Google Drive instead
-AR_environment/dish_models
-frontend/images
+# AR_environment/dish_models (commented out - we need these for the app)
+# frontend/images (commented out - we need these for the app)
 # Workspace directories (temporary processing files)
 **/colmap_workspace/
 **/openmvs_workspace/
 **/output/
 
-# 3D file formats (large files)
+# 3D file formats (large files) - but allow AR dish models
 *.ply
 *.mvs
-*.glb
+# *.glb (commented out - we need GLB files for AR)
 *.obj
 *.mtl
 *.stl
