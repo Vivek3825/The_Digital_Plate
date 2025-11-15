@@ -9,20 +9,25 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
     background: #000;
+    /* Support for safe areas (notches, etc.) */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .ar-container {
     position: relative;
     width: 100vw;
     height: 100vh;
+    /* Use dvh for mobile browsers that support it */
+    height: 100dvh;
     overflow: hidden;
+    touch-action: none;
 }
 
 /* Back Button */
 .back-button {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: max(20px, env(safe-area-inset-top, 20px));
+    left: max(20px, env(safe-area-inset-left, 20px));
     background: rgba(255, 255, 255, 0.95);
     border: none;
     padding: 12px 24px;
@@ -33,6 +38,8 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     transition: transform 0.2s ease, background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .back-button:hover {
@@ -65,6 +72,9 @@ body {
     height: 100%;
     z-index: 2;
     display: none;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Start Screen */
@@ -156,8 +166,8 @@ body {
 
 .control-panel {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: max(20px, env(safe-area-inset-top, 20px));
+    right: max(20px, env(safe-area-inset-right, 20px));
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -176,6 +186,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .control-icon-btn:hover {
@@ -189,10 +201,12 @@ body {
 
 .position-controls {
     position: absolute;
-    bottom: 100px;
+    bottom: max(100px, calc(100px + env(safe-area-inset-bottom, 0px)));
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
+    width: 90%;
+    max-width: 500px;
 }
 
 .position-info {
@@ -206,6 +220,7 @@ body {
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.2);
+    user-select: none;
 }
 
 .gesture-hints {
@@ -213,6 +228,7 @@ body {
     gap: 15px;
     justify-content: center;
     flex-wrap: wrap;
+    padding: 0 10px;
 }
 
 .gesture-hints span {
@@ -224,11 +240,13 @@ body {
     color: #333;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
     border: 2px solid rgba(102, 126, 234, 0.2);
+    white-space: nowrap;
+    user-select: none;
 }
 
 .exit-ar-btn {
     position: absolute;
-    bottom: 30px;
+    bottom: max(30px, calc(20px + env(safe-area-inset-bottom, 0px)));
     left: 50%;
     transform: translateX(-50%);
     background: rgba(255, 59, 48, 0.95);
@@ -241,6 +259,8 @@ body {
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .exit-ar-btn:hover {
@@ -292,43 +312,129 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .start-content {
+        padding: 20px;
+        max-width: 90%;
+    }
+
     .start-content h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
     }
 
     .description {
-        font-size: 1rem;
+        font-size: 0.95rem;
+        margin-bottom: 25px;
     }
 
     .start-ar-btn {
         font-size: 1rem;
         padding: 15px 30px;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .features {
+        gap: 8px;
+    }
+
+    .feature {
+        font-size: 0.85rem;
     }
 
     .back-button {
-        top: 10px;
-        left: 10px;
-        padding: 10px 20px;
+        top: max(10px, env(safe-area-inset-top, 10px));
+        left: max(10px, env(safe-area-inset-left, 10px));
+        padding: 10px 18px;
+        font-size: 0.85rem;
+    }
+
+    .control-panel {
+        top: max(80px, calc(80px + env(safe-area-inset-top, 0px)));
+        right: max(10px, env(safe-area-inset-right, 10px));
+        gap: 8px;
+    }
+
+    .control-icon-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.4rem;
+    }
+
+    .position-controls {
+        bottom: max(120px, calc(120px + env(safe-area-inset-bottom, 0px)));
+        width: 90%;
+        max-width: 400px;
+    }
+
+    .position-info {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+
+    .gesture-hints {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .gesture-hints span {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        flex: 0 1 auto;
+    }
+
+    .exit-ar-btn {
+        bottom: max(20px, calc(15px + env(safe-area-inset-bottom, 0px)));
+        padding: 12px 30px;
+        font-size: 0.95rem;
+        width: auto;
+        min-width: 150px;
+    }
+
+    .loading-indicator {
+        padding: 25px 30px;
+        width: 80%;
+        max-width: 300px;
+    }
+
+    .loading-indicator p {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .start-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .description {
         font-size: 0.9rem;
     }
 
     .control-panel {
-        top: 10px;
-        right: 10px;
+        top: max(70px, calc(70px + env(safe-area-inset-top, 0px)));
     }
 
     .control-icon-btn {
         width: 45px;
         height: 45px;
-        font-size: 1.3rem;
-    }
-
-    .gesture-hints {
-        font-size: 0.75rem;
+        font-size: 1.2rem;
     }
 
     .gesture-hints span {
-        padding: 6px 12px;
+        font-size: 0.7rem;
+        padding: 6px 10px;
+    }
+
+    .position-info {
+        font-size: 0.85rem;
+        padding: 10px 15px;
+    }
+    
+    .position-controls {
+        width: 95%;
     }
 }
 
@@ -342,3 +448,25 @@ body {
         opacity: 0.8;
     }
 }
+
+/* Active/Pressed states for touch */
+.control-icon-btn:active,
+.start-ar-btn:active,
+.exit-ar-btn:active,
+.back-button:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* Ripple effect on tap */
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+

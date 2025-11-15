@@ -9,9 +9,11 @@ let surfaceIndicator;
 let touchStartX = 0;
 let touchStartY = 0;
 let initialPinchDistance = 0;
+let initialRotationAngle = 0;
 let modelScale = 1;
 let isDragging = false;
 let lastTouchTime = 0;
+let isTwoFingerGesture = false;
 
 // Mouse interaction variables
 let isMouseDown = false;
@@ -77,6 +79,9 @@ function setupEventListeners(modelFile) {
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+    
+    // Click event for desktop and as fallback for mobile
     canvas.addEventListener('click', handleCanvasClick);
     
     // Mouse support for desktop
@@ -84,6 +89,9 @@ function setupEventListeners(modelFile) {
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('wheel', handleMouseWheel, { passive: false });
+    
+    // Prevent default context menu on long press
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
 // Start AR Experience with camera feed
@@ -329,26 +337,33 @@ function animate() {
 
 // Handle touch start
 function handleTouchStart(e) {
+    console.log('[AR] Touch start, touches:', e.touches.length);
     lastTouchTime = Date.now();
     
     if (e.touches.length === 1) {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
         isDragging = false;
+        isTwoFingerGesture = false;
     } else if (e.touches.length === 2) {
-        // Pinch gesture
+        // Two-finger gesture (pinch to scale, rotate)
         isDragging = false;
+        isTwoFingerGesture = true;
+        
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         initialPinchDistance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Calculate initial rotation angle
+        initialRotationAngle = Math.atan2(dy, dx);
     }
     e.preventDefault();
 }
 
 // Handle touch move
 function handleTouchMove(e) {
-    if (e.touches.length === 1) {
-        // Check if user is dragging (moved enough distance)
+    if (e.touches.length === 1 && !isTwoFingerGesture) {
+        // Single finger drag
         const moveThreshold = 10;
         const deltaX = e.touches[0].clientX - touchStartX;
         const deltaY = e.touches[0].clientY - touchStartY;
@@ -356,6 +371,7 @@ function handleTouchMove(e) {
         
         if (distance > moveThreshold) {
             isDragging = true;
+            console.log('[AR] Drag detected');
         }
         
         if (model && isModelPlaced && isDragging) {
@@ -373,14 +389,19 @@ function handleTouchMove(e) {
             updatePositionText();
         }
     } else if (e.touches.length === 2) {
+        // Two-finger gesture
         isDragging = false;
+        isTwoFingerGesture = true;
         
         if (model && isModelPlaced) {
-            // Pinch to scale - improved
+            console.log('[AR] Two-finger gesture detected');
+            
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             const distance = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
             
+            // Pinch to scale
             if (initialPinchDistance > 0) {
                 const scaleFactor = distance / initialPinchDistance;
                 const newScale = modelScale * scaleFactor;
@@ -393,6 +414,13 @@ function handleTouchMove(e) {
                 }
             }
             
+            // Rotate with two fingers
+            if (initialRotationAngle !== undefined) {
+                const rotationDelta = angle - initialRotationAngle;
+                model.rotation.y += rotationDelta;
+                initialRotationAngle = angle;
+            }
+            
             initialPinchDistance = distance;
         }
     }
@@ -402,26 +430,53 @@ function handleTouchMove(e) {
 
 // Handle touch end
 function handleTouchEnd(e) {
-    // Reset pinch distance
+    console.log('[AR] Touch end, remaining touches:', e.touches.length);
+    
+    // Reset gesture tracking
     if (e.touches.length < 2) {
         initialPinchDistance = 0;
+        initialRotationAngle = undefined;
+    }
+    
+    if (e.touches.length === 0) {
+        isTwoFingerGesture = false;
     }
     
     // If not dragging and quick tap, it's a placement tap
     const touchDuration = Date.now() - lastTouchTime;
-    if (!isDragging && touchDuration < 300 && e.touches.length === 0) {
-        // This was a tap, not a drag
+    const wasTap = !isDragging && !isTwoFingerGesture && touchDuration < 300 && e.touches.length === 0;
+    
+    if (wasTap && !isModelPlaced) {
+        console.log('[AR] Tap detected for model placement');
+        // Trigger placement via click event
+        handleCanvasClick(e);
     }
     
-    isDragging = false;
+    // Small delay before resetting drag flag to prevent click event from firing
+    setTimeout(() => {
+        isDragging = false;
+    }, 100);
+    
     e.preventDefault();
 }
 
-// Handle canvas click to place model
+// Handle canvas click/tap to place model
 function handleCanvasClick(e) {
-    if (!model || isDragging) return;
+    // Check if this was preceded by dragging
+    if (isDragging) {
+        console.log('[AR] Ignoring click due to drag');
+        return;
+    }
+    
+    // Check if model exists
+    if (!model) {
+        console.log('[AR] Model not loaded yet');
+        return;
+    }
     
     if (!isModelPlaced) {
+        console.log('[AR] Placing model at surface indicator position');
+        
         // Place model at the surface indicator position
         model.position.copy(surfaceIndicator.position);
         model.position.y += 0.2; // Slightly above surface
@@ -455,6 +510,8 @@ function handleCanvasClick(e) {
         if (navigator.vibrate) {
             navigator.vibrate(50);
         }
+        
+        console.log('[AR] Model placed successfully');
     }
 }
 
