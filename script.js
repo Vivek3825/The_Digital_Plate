@@ -178,6 +178,10 @@ let currentFilter = 'all';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // EMERGENCY DEBUG
+    console.log('🚨 PAGE LOADED!');
+    alert('🚨 JavaScript is working! Check console for menu logs.');
+    
     initializeMenu();
     setupEventListeners();
     setupScrollAnimations();
