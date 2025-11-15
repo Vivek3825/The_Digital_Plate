@@ -132,27 +132,40 @@
     </section>
 
     <!-- Menu Section -->
-    <section id="menu" class="menu-section" style="background: #f8f9fa; min-height: 100vh; padding: 100px 20px;">
-        <div class="container" style="max-width: 1200px; margin: 0 auto;">
-            <h2 class="section-title" style="color: #1a1a2e; text-align: center; font-size: 2.5rem; margin-bottom: 1rem;">Our Menu</h2>
-            <p class="section-subtitle" style="text-align: center; color: #666; font-size: 1.1rem; margin-bottom: 3rem;">Discover our exquisite collection of dishes</p>
+    <section id="menu" class="menu-section" style="background: red; min-height: 100vh; padding: 100px 20px;">
+        <!-- TEST: If you see RED background, section is loading -->
+        <div style="background: yellow; padding: 50px; margin: 20px; text-align: center;">
+            <h1 style="color: black; font-size: 3rem; background: lime;">🍕 MENU TEST - CAN YOU SEE THIS?</h1>
+            <p style="color: black; font-size: 2rem; background: cyan;">If you see this colorful box, the menu section is working!</p>
+        </div>
+        
+        <div class="container" style="max-width: 1200px; margin: 0 auto; background: orange; padding: 30px;">
+            <h2 class="section-title" style="color: black; text-align: center; font-size: 2.5rem; margin-bottom: 1rem; background: pink;">Our Menu</h2>
+            <p class="section-subtitle" style="text-align: center; color: black; font-size: 1.5rem; margin-bottom: 3rem; background: lightblue;">Discover our exquisite collection of dishes</p>
 
             <!-- Menu Categories -->
-            <div class="menu-categories" style="display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem;">
-                <button class="category-btn active" data-category="all" style="padding: 12px 30px; background: #ff6b6b; color: white; border: 2px solid #ff6b6b; border-radius: 25px;">All</button>
-                <button class="category-btn" data-category="appetizers" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px;">Appetizers</button>
-                <button class="category-btn" data-category="main" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px;">Main Course</button>
-                <button class="category-btn" data-category="desserts" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px;">Desserts</button>
-                <button class="category-btn" data-category="beverages" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px;">Beverages</button>
+            <div class="menu-categories" style="display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem; background: lightgreen; padding: 20px;">
+                <button class="category-btn active" data-category="all" style="padding: 12px 30px; background: #ff6b6b; color: white; border: 2px solid #ff6b6b; border-radius: 25px; font-size: 1.2rem;">All</button>
+                <button class="category-btn" data-category="appetizers" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px; font-size: 1.2rem;">Appetizers</button>
+                <button class="category-btn" data-category="main" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px; font-size: 1.2rem;">Main Course</button>
             </div>
 
             <!-- Menu Items Grid -->
-            <div class="menu-grid" id="menuGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; opacity: 1; visibility: visible;">
-                <!-- Menu items will be populated by JavaScript -->
-                <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #666; background: white; border-radius: 15px;">
-                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #ff6b6b; margin-bottom: 1rem;"></i>
-                    <p style="font-size: 1.1rem;">Loading delicious menu...</p>
+            <div class="menu-grid" id="menuGrid" style="display: grid; grid-template-columns: 1fr; gap: 2rem; opacity: 1; visibility: visible; background: white; padding: 20px;">
+                <!-- Static test item that should ALWAYS be visible -->
+                <div style="background: white; border: 5px solid black; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <div style="background: blue; height: 200px; margin-bottom: 15px;">
+                        <img src="images/pizza.jpg" alt="Test Pizza" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    </div>
+                    <h3 style="color: black; font-size: 1.5rem; margin-bottom: 10px;">🍕 TEST PIZZA</h3>
+                    <p style="color: black; font-size: 1.2rem; margin-bottom: 15px;">This is a test menu item. Can you see this text?</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button style="flex: 1; padding: 15px; background: #4ecdc4; color: white; border: none; border-radius: 8px; font-size: 1.1rem;">AR View</button>
+                        <button style="flex: 1; padding: 15px; background: #ff6b6b; color: white; border: none; border-radius: 8px; font-size: 1.1rem;">Add to Cart</button>
+                    </div>
                 </div>
+                
+                <!-- JavaScript will add more items here -->
             </div>
         </div>
     </section>
