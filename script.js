@@ -242,6 +242,47 @@ function createMenuItem(item, index) {
 
 // Setup Event Listeners
 function setupEventListeners() {
+    // Mobile Menu Toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const navMenu = document.getElementById('navMenu');
+    
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            const icon = mobileMenuToggle.querySelector('i');
+            if (navMenu.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+    }
+
+    // Close mobile menu when clicking on a link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Smooth scroll to target
+            const target = document.querySelector(link.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Close mobile menu on mobile
+            if (window.innerWidth <= 768 && navMenu && mobileMenuToggle) {
+                navMenu.classList.remove('active');
+                const icon = mobileMenuToggle.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        });
+    });
+    
     // Category Buttons
     const categoryBtns = document.querySelectorAll('.category-btn');
     categoryBtns.forEach(btn => {
@@ -261,15 +302,6 @@ function setupEventListeners() {
         } else {
             navbar.classList.remove('scrolled');
         }
-    });
-    
-    // Smooth Scroll for Navigation
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const target = document.querySelector(link.getAttribute('href'));
-            target.scrollIntoView({ behavior: 'smooth' });
-        });
     });
     
     // Star Rating
