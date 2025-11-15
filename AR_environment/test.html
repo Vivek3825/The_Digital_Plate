@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Test - Check Model Loading</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: #fff;
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+        .success { background: #2d5016; }
+        .error { background: #501616; }
+        .info { background: #163050; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 AR Environment Test</h1>
+    
+    <div id="results"></div>
+    
+    <h2>Manual Tests:</h2>
+    <button onclick="testCamera()">Test Camera Access</button>
+    <button onclick="testThreeJS()">Test Three.js Loading</button>
+    <button onclick="testModelPath('samosa.glb')">Test Samosa Model</button>
+    <button onclick="testModelPath('pizza.glb')">Test Pizza Model</button>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+        
+        // Auto-run tests on load
+        window.onload = function() {
+            log('🚀 Starting automated tests...', 'info');
+            
+            // Test 1: Check if Three.js is loaded
+            if (typeof THREE !== 'undefined') {
+                log('✅ Three.js loaded successfully (version: ' + THREE.REVISION + ')', 'success');
+            } else {
+                log('❌ Three.js NOT loaded', 'error');
+            }
+            
+            // Test 2: Check if GLTFLoader is available
+            if (typeof THREE.GLTFLoader !== 'undefined') {
+                log('✅ THREE.GLTFLoader available', 'success');
+            } else if (typeof GLTFLoader !== 'undefined') {
+                log('✅ Global GLTFLoader available', 'success');
+            } else {
+                log('❌ GLTFLoader NOT available', 'error');
+            }
+            
+            // Test 3: Check current URL
+            log('📍 Current URL: ' + window.location.href, 'info');
+            
+            // Test 4: Check if running on HTTPS or localhost
+            if (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                log('✅ Running in secure context (camera will work)', 'success');
+            } else {
+                log('⚠️ NOT in secure context (camera may not work)', 'error');
+            }
+        };
+        
+        async function testCamera() {
+            log('📷 Testing camera access...', 'info');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                log('✅ Camera access granted!', 'success');
+                stream.getTracks().forEach(track => track.stop()); // Stop camera
+            } catch (error) {
+                log('❌ Camera error: ' + error.message, 'error');
+            }
+        }
+        
+        function testThreeJS() {
+            log('🎨 Testing Three.js scene creation...', 'info');
+            try {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer();
+                log('✅ Three.js scene created successfully', 'success');
+            } catch (error) {
+                log('❌ Three.js error: ' + error.message, 'error');
+            }
+        }
+        
+        function testModelPath(modelFile) {
+            log('📦 Testing model: ' + modelFile, 'info');
+            
+            const LoaderClass = THREE.GLTFLoader || GLTFLoader;
+            const loader = new LoaderClass();
+            const modelPath = 'dish_models/' + modelFile;
+            
+            log('🔗 Attempting to load: ' + modelPath, 'info');
+            
+            loader.load(
+                modelPath,
+                (gltf) => {
+                    log('✅ Model loaded successfully: ' + modelFile, 'success');
+                },
+                (xhr) => {
+                    if (xhr.lengthComputable) {
+                        const percent = (xhr.loaded / xhr.total * 100).toFixed(2);
+                        log('⏳ Loading ' + modelFile + ': ' + percent + '%', 'info');
+                    }
+                },
+                (error) => {
+                    log('❌ Failed to load ' + modelFile + ': ' + error.message, 'error');
+                    log('💡 Full path attempted: ' + window.location.origin + window.location.pathname.replace('test.html', '') + modelPath, 'info');
+                }
+            );
+        }
+    </script>
+</body>
+</html>
