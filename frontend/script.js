@@ -7,7 +7,8 @@ const menuData = [
         price: 12.99,
         description: 'Crisp romaine lettuce with parmesan and croutons',
         image: 'images/Caesar_Salad.png',
-        badge: 'Popular'
+        badge: 'Popular',
+        hasAR: false
     },
     {
         id: 2,
@@ -16,7 +17,8 @@ const menuData = [
         price: 8.99,
         description: 'Toasted bread with garlic butter and herbs',
         image: 'images/Garlic_Bread.jpg',
-        badge: 'New'
+        badge: 'New',
+        hasAR: false
     },
     {
         id: 3,
@@ -25,7 +27,8 @@ const menuData = [
         price: 10.99,
         description: 'Grilled bread with tomatoes and basil',
         image: 'images/Bruschetta.png',
-        badge: ''
+        badge: '',
+        hasAR: false
     },
     {
         id: 4,
@@ -34,7 +37,8 @@ const menuData = [
         price: 28.99,
         description: 'Fresh salmon with lemon butter sauce',
         image: 'images/Grilled_Salmon.png',
-        badge: 'Chef Special'
+        badge: 'Chef Special',
+        hasAR: false
     },
     {
         id: 5,
@@ -43,7 +47,8 @@ const menuData = [
         price: 35.99,
         description: 'Premium ribeye with garlic mashed potatoes',
         image: 'images/Ribeye_Steak.png',
-        badge: 'Premium'
+        badge: 'Premium',
+        hasAR: false
     },
     {
         id: 6,
@@ -52,7 +57,8 @@ const menuData = [
         price: 22.99,
         description: 'Breaded chicken with marinara and cheese',
         image: 'images/Chicken_Parmesan.png',
-        badge: 'Popular'
+        badge: 'Popular',
+        hasAR: false
     },
     {
         id: 7,
@@ -61,7 +67,8 @@ const menuData = [
         price: 18.99,
         description: 'Fresh pasta with seasonal vegetables',
         image: 'images/Vegetable_Pasta.png',
-        badge: 'Vegan'
+        badge: 'Vegan',
+        hasAR: false
     },
     {
         id: 8,
@@ -70,7 +77,8 @@ const menuData = [
         price: 38.99,
         description: 'Creamy risotto with fresh lobster',
         image: 'images/Lobster_Risotto.jpg',
-        badge: 'Premium'
+        badge: 'Premium',
+        hasAR: false
     },
     {
         id: 9,
@@ -79,7 +87,8 @@ const menuData = [
         price: 9.99,
         description: 'Warm chocolate cake with molten center',
         image: 'images/Chocolate_Lava_Cake.png',
-        badge: 'Popular'
+        badge: 'Popular',
+        hasAR: false
     },
     {
         id: 10,
@@ -88,7 +97,8 @@ const menuData = [
         price: 8.99,
         description: 'Classic Italian coffee-flavored dessert',
         image: 'images/Tiramisu.png',
-        badge: ''
+        badge: '',
+        hasAR: false
     },
     {
         id: 11,
@@ -97,7 +107,8 @@ const menuData = [
         price: 10.99,
         description: 'New York style with berry compote',
         image: 'images/Cheesecake.jpg',
-        badge: 'Chef Special'
+        badge: 'Chef Special',
+        hasAR: false
     },
     {
         id: 12,
@@ -106,7 +117,8 @@ const menuData = [
         price: 4.99,
         description: 'Freshly squeezed lemonade',
         image: 'images/Fresh_Lemonade.jpg',
-        badge: ''
+        badge: '',
+        hasAR: false
     },
     {
         id: 13,
@@ -115,7 +127,8 @@ const menuData = [
         price: 5.99,
         description: 'Cold brew with ice and cream',
         image: 'images/Iced_Coffee.png',
-        badge: 'Popular'
+        badge: 'Popular',
+        hasAR: false
     },
     {
         id: 14,
@@ -124,7 +137,38 @@ const menuData = [
         price: 8.99,
         description: 'Classic Cuban cocktail',
         image: 'images/Mojito.png',
-        badge: 'Signature'
+        badge: 'Signature',
+        hasAR: false
+    },
+    {
+        id: 15,
+        name: 'Samosa',
+        category: 'appetizers',
+        price: 4.99,
+        description: 'Golden fried pastry with spiced filling',
+        image: 'images/samosa.jpg',
+        badge: 'AR Available',
+        hasAR: true
+    },
+    {
+        id: 16,
+        name: 'Pizza',
+        category: 'main',
+        price: 18.99,
+        description: 'Wood-fired artisan pizza with fresh toppings',
+        image: 'images/pizza.jpg',
+        badge: 'AR Available',
+        hasAR: true
+    },
+    {
+        id: 17,
+        name: 'Monster Energy Drink',
+        category: 'beverages',
+        price: 3.99,
+        description: 'Refreshing energy boost',
+        image: 'images/Monster_Energy_Drink.jpg',
+        badge: 'AR Available',
+        hasAR: true
     }
 ];
 
@@ -166,6 +210,13 @@ function createMenuItem(item, index) {
     div.className = 'menu-item';
     div.style.animationDelay = `${index * 0.1}s`;
     
+    // Conditionally render AR button only for items with AR support
+    const arButton = item.hasAR 
+        ? `<button class="btn-ar" onclick="openARModal('${item.name}')">
+                <i class="fas fa-cube"></i> AR
+            </button>`
+        : '';
+    
     div.innerHTML = `
         <div class="menu-item-image">
             <img src="${item.image}" alt="${item.name}">
@@ -178,9 +229,7 @@ function createMenuItem(item, index) {
             </div>
             <p class="menu-item-description">${item.description}</p>
             <div class="menu-item-footer">
-                <button class="btn-ar" onclick="openARModal()">
-                    <i class="fas fa-cube"></i> AR
-                </button>
+                ${arButton}
                 <button class="btn-add-cart" onclick="addToCart(${item.id})">
                     <i class="fas fa-cart-plus"></i> Add to Cart
                 </button>
@@ -309,7 +358,8 @@ function setupEventListeners() {
     // View AR Buttons in Hero
     document.querySelectorAll('.btn-view-ar').forEach(btn => {
         btn.addEventListener('click', () => {
-            openARModal();
+            const dishName = btn.getAttribute('data-dish');
+            openARModal(dishName);
         });
     });
     
@@ -481,10 +531,26 @@ function getBotResponse(message) {
     }
 }
 
-// AR Modal
-function openARModal() {
-    const modal = document.getElementById('arModal');
-    modal.classList.add('active');
+// AR Modal - Redirect to AR Environment
+function openARModal(dishName) {
+    // Map dish names to model files
+    const dishToModelMap = {
+        'Crispy Samosa': 'samosa.glb',
+        'Samosa': 'samosa.glb',
+        'Artisan Pizza': 'pizza.glb',
+        'Pizza': 'pizza.glb',
+        'Monster Energy': 'monster_energy_drink.glb',
+        'Monster Energy Drink': 'monster_energy_drink.glb'
+    };
+    
+    // Redirect directly to AR viewer with the model
+    if (dishName && dishToModelMap[dishName]) {
+        const modelFile = dishToModelMap[dishName];
+        window.location.href = `../AR_environment/custom-ar.html?model=${encodeURIComponent(modelFile)}`;
+    } else {
+        // If no dish specified or not found, show error
+        alert('AR model not available for this dish. Please select a dish with AR support.');
+    }
 }
 
 // Scroll to Section

@@ -36,8 +36,8 @@ function init() {
     const modelFile = getModelFromURL();
     
     if (!modelFile) {
-        alert('No model specified!');
-        window.location.href = 'index.html';
+        alert('No model specified! Redirecting to menu...');
+        window.location.href = '../frontend/index.html';
         return;
     }
 
@@ -45,7 +45,7 @@ function init() {
     const config = modelConfigs[modelFile];
     if (config) {
         document.getElementById('modelTitle').textContent = config.name;
-        document.title = `${config.name} - Custom AR`;
+        document.title = `${config.name} - AR Viewer`;
     }
 
     // Setup event listeners
@@ -88,7 +88,6 @@ function setupEventListeners(modelFile) {
 
 // Start AR Experience with camera feed
 async function startARExperience(modelFile) {
-    const button = document.getElementById('openCamera');
     const video = document.getElementById('video');
     const startScreen = document.getElementById('startScreen');
     const arControls = document.getElementById('arControls');
@@ -99,7 +98,7 @@ async function startARExperience(modelFile) {
         // Show loading
         loadingIndicator.classList.remove('hidden');
 
-        // Request camera access using your provided code
+        // Request camera access
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
                 facingMode: 'environment', // Use rear camera
@@ -138,8 +137,8 @@ async function startARExperience(modelFile) {
         animate();
 
     } catch (error) {
-        console.error('Error accessing camera:', error);
-        alert('Unable to access camera. Please ensure camera permissions are granted.');
+        console.error('AR Experience Error:', error);
+        alert('Unable to access camera or load model. Error: ' + error.message);
         loadingIndicator.classList.add('hidden');
     }
 }
@@ -168,7 +167,11 @@ async function initThreeJS(modelFile, video) {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    
+    // Handle encoding for different Three.js versions
+    if (renderer.outputEncoding !== undefined) {
+        renderer.outputEncoding = THREE.sRGBEncoding;
+    }
     
     // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
@@ -228,7 +231,21 @@ function animateSurfaceIndicator() {
 // Load 3D model
 function loadModel(modelFile) {
     return new Promise((resolve, reject) => {
-        const loader = new THREE.GLTFLoader();
+        // Check which GLTFLoader is available
+        let LoaderClass;
+        if (typeof THREE.GLTFLoader !== 'undefined') {
+            LoaderClass = THREE.GLTFLoader;
+        } else if (typeof GLTFLoader !== 'undefined') {
+            LoaderClass = GLTFLoader;
+        } else {
+            const errorMsg = 'GLTFLoader not found! Please check your internet connection.';
+            console.error(errorMsg);
+            alert(errorMsg);
+            reject(new Error(errorMsg));
+            return;
+        }
+        
+        const loader = new LoaderClass();
         const modelPath = `dish_models/${modelFile}`;
         
         loader.load(
@@ -253,14 +270,14 @@ function loadModel(modelFile) {
                 scene.add(model);
                 modelScale = initialScale;
                 
-                console.log('Model loaded successfully');
                 resolve();
             },
             (xhr) => {
-                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                // Progress callback (optional)
             },
             (error) => {
                 console.error('Error loading model:', error);
+                alert('Failed to load 3D model. Please try again.');
                 reject(error);
             }
         );
@@ -562,6 +579,7 @@ function onWindowResize() {
 }
 
 // Exit AR and cleanup
+// Exit AR and cleanup
 function exitAR() {
     isArActive = false;
     
@@ -580,8 +598,8 @@ function exitAR() {
         scene.clear();
     }
     
-    // Go back to main page
-    window.location.href = 'index.html';
+    // Go back to frontend menu
+    window.location.href = '../frontend/index.html';
 }
 
 // Initialize on page load
