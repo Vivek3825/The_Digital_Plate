@@ -137,9 +137,22 @@ async function startARExperience(modelFile) {
         animate();
 
     } catch (error) {
-        console.error('AR Experience Error:', error);
-        alert('Unable to access camera or load model. Error: ' + error.message);
+        console.error('[AR] Experience Error:', error);
         loadingIndicator.classList.add('hidden');
+        
+        let errorMessage = 'Unable to start AR experience. ';
+        if (error.name === 'NotAllowedError') {
+            errorMessage += 'Camera access was denied. Please allow camera permissions.';
+        } else if (error.name === 'NotFoundError') {
+            errorMessage += 'No camera found on this device.';
+        } else if (error.message.includes('GLTFLoader')) {
+            errorMessage += 'Failed to load 3D model viewer. Check internet connection.';
+        } else {
+            errorMessage += error.message;
+        }
+        
+        alert(errorMessage);
+        console.error('[AR] Full error details:', error);
     }
 }
 
@@ -231,15 +244,19 @@ function animateSurfaceIndicator() {
 // Load 3D model
 function loadModel(modelFile) {
     return new Promise((resolve, reject) => {
+        console.log('[AR] Loading model:', modelFile);
+        
         // Check which GLTFLoader is available
         let LoaderClass;
         if (typeof THREE.GLTFLoader !== 'undefined') {
             LoaderClass = THREE.GLTFLoader;
+            console.log('[AR] Using THREE.GLTFLoader');
         } else if (typeof GLTFLoader !== 'undefined') {
             LoaderClass = GLTFLoader;
+            console.log('[AR] Using global GLTFLoader');
         } else {
             const errorMsg = 'GLTFLoader not found! Please check your internet connection.';
-            console.error(errorMsg);
+            console.error('[AR]', errorMsg);
             alert(errorMsg);
             reject(new Error(errorMsg));
             return;
@@ -247,10 +264,12 @@ function loadModel(modelFile) {
         
         const loader = new LoaderClass();
         const modelPath = `dish_models/${modelFile}`;
+        console.log('[AR] Model path:', modelPath);
         
         loader.load(
             modelPath,
             (gltf) => {
+                console.log('[AR] Model loaded successfully:', modelFile);
                 model = gltf.scene;
                 
                 // Get model config for initial scale
@@ -273,11 +292,16 @@ function loadModel(modelFile) {
                 resolve();
             },
             (xhr) => {
-                // Progress callback (optional)
+                // Progress callback
+                if (xhr.lengthComputable) {
+                    const percentComplete = (xhr.loaded / xhr.total) * 100;
+                    console.log('[AR] Loading progress:', percentComplete.toFixed(2) + '%');
+                }
             },
             (error) => {
-                console.error('Error loading model:', error);
-                alert('Failed to load 3D model. Please try again.');
+                console.error('[AR] Error loading model:', error);
+                console.error('[AR] Attempted path:', modelPath);
+                alert('Failed to load 3D model. Please check if the model file exists.');
                 reject(error);
             }
         );
