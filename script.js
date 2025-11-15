@@ -178,10 +178,6 @@ let currentFilter = 'all';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // EMERGENCY DEBUG
-    console.log('🚨 PAGE LOADED!');
-    alert('🚨 JavaScript is working! Check console for menu logs.');
-    
     initializeMenu();
     setupEventListeners();
     setupScrollAnimations();
@@ -190,17 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize Menu
 function initializeMenu() {
-    console.log('🍽️ Initializing menu...');
     const menuGrid = document.getElementById('menuGrid');
     
     if (!menuGrid) {
-        console.error('❌ Menu grid not found in DOM!');
+        console.error('Menu grid not found in DOM');
         return;
     }
     
-    // Immediately render items
     renderMenuItems(currentFilter);
-    console.log('✅ Menu initialized successfully');
 }
 
 // Render Menu Items
@@ -208,21 +201,16 @@ function renderMenuItems(category) {
     const menuGrid = document.getElementById('menuGrid');
     
     if (!menuGrid) {
-        console.error('❌ Menu grid element not found!');
+        console.error('Menu grid element not found');
         return;
     }
     
     // Clear existing content
     menuGrid.innerHTML = '';
-    menuGrid.style.display = 'grid';
-    menuGrid.style.visibility = 'visible';
-    menuGrid.style.opacity = '1';
     
     const filteredItems = category === 'all' 
         ? menuData 
         : menuData.filter(item => item.category === category);
-    
-    console.log(`📋 Rendering ${filteredItems.length} menu items for category: ${category}`);
     
     if (filteredItems.length === 0) {
         menuGrid.innerHTML = `
@@ -238,20 +226,12 @@ function renderMenuItems(category) {
         const menuItem = createMenuItem(item, index);
         menuGrid.appendChild(menuItem);
     });
-    
-    console.log(`✅ ${filteredItems.length} menu items rendered successfully`);
 }
 
 // Create Menu Item Element
 function createMenuItem(item, index) {
     const div = document.createElement('div');
     div.className = 'menu-item';
-    
-    // Ensure visibility with inline styles
-    div.style.opacity = '1';
-    div.style.visibility = 'visible';
-    div.style.display = 'block';
-    div.style.backgroundColor = 'white';
     
     // Conditionally render AR button only for items with AR support
     const arButton = item.hasAR 
