@@ -37,7 +37,7 @@ function init() {
     
     if (!modelFile) {
         alert('No model specified! Redirecting to menu...');
-        window.location.href = '../frontend/index.html';
+        window.location.href = '../index.html';
         return;
     }
 
@@ -599,7 +599,7 @@ function exitAR() {
     }
     
     // Go back to frontend menu
-    window.location.href = '../frontend/index.html';
+    window.location.href = '../index.html';
 }
 
 // Initialize on page load

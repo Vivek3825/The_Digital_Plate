@@ -546,7 +546,7 @@ function openARModal(dishName) {
     // Redirect directly to AR viewer with the model
     if (dishName && dishToModelMap[dishName]) {
         const modelFile = dishToModelMap[dishName];
-        window.location.href = `../AR_environment/custom-ar.html?model=${encodeURIComponent(modelFile)}`;
+        window.location.href = `AR_environment/custom-ar.html?model=${encodeURIComponent(modelFile)}`;
     } else {
         // If no dish specified or not found, show error
         alert('AR model not available for this dish. Please select a dish with AR support.');
