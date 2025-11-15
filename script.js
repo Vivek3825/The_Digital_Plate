@@ -233,58 +233,27 @@ function createMenuItem(item, index) {
     const div = document.createElement('div');
     div.className = 'menu-item';
     
-    // Add inline styles for attractive card design
-    div.style.cssText = `
-        background: white;
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        cursor: pointer;
-    `;
-    
-    // Add hover effect
-    div.addEventListener('mouseenter', () => {
-        div.style.transform = 'translateY(-10px)';
-        div.style.boxShadow = '0 15px 40px rgba(0,0,0,0.2)';
-    });
-    
-    div.addEventListener('mouseleave', () => {
-        div.style.transform = 'translateY(0)';
-        div.style.boxShadow = '0 5px 20px rgba(0,0,0,0.1)';
-    });
+    // Conditionally render AR button only for items with AR support
+    const arButton = item.hasAR 
+        ? `<button class="btn-ar" onclick="openARModal('${item.name}')" style="background: #4ecdc4; color: white;">
+                <i class="fas fa-cube"></i> AR
+            </button>`
+        : '';
     
     div.innerHTML = `
-        <div style="position: relative; height: 250px; overflow: hidden; background: #e0e0e0;">
-            <img src="${item.image}" alt="${item.name}" 
-                style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;"
-                onmouseover="this.style.transform='scale(1.1)'"
-                onmouseout="this.style.transform='scale(1)'">
-            ${item.badge ? `
-                <span style="position: absolute; top: 15px; right: 15px; background: #ffe66d; color: #1a1a2e; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                    ${item.badge}
-                </span>
-            ` : ''}
+        <div class="menu-item-image" style="background: #e0e0e0;">
+            <img src="${item.image}" alt="${item.name}" style="display: block; width: 100%; height: 100%; object-fit: cover;">
+            ${item.badge ? `<span class="menu-item-badge" style="background: #ffe66d; color: #1a1a2e;">${item.badge}</span>` : ''}
         </div>
-        <div style="padding: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                <h3 style="color: #1a1a2e; font-size: 1.3rem; font-weight: 600; margin: 0; flex: 1;">
-                    ${item.name}
-                </h3>
-                <span style="color: #ff6b6b; font-size: 1.4rem; font-weight: 700; margin-left: 10px;">
-                    $${item.price}
-                </span>
+        <div class="menu-item-content" style="padding: 1.5rem; background: white;">
+            <div class="menu-item-header">
+                <h3 class="menu-item-title" style="color: #1a1a2e; font-size: 1.2rem; font-weight: 600;">${item.name}</h3>
+                <span class="menu-item-price" style="color: #ff6b6b; font-size: 1.3rem; font-weight: bold;">$${item.price}</span>
             </div>
-            <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">
-                ${item.description}
-            </p>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="handleARClick(${item.id}, '${item.name}', ${item.hasAR})" 
-                    style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i class="fas fa-cube"></i> AR View
-                </button>
-                <button onclick="addToCart(${item.id})" 
-                    style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <p class="menu-item-description" style="color: #666; font-size: 0.95rem; margin-bottom: 1rem;">${item.description}</p>
+            <div class="menu-item-footer">
+                ${arButton}
+                <button class="btn-add-cart" onclick="addToCart(${item.id})" style="background: #ff6b6b; color: white;">
                     <i class="fas fa-cart-plus"></i> Add to Cart
                 </button>
             </div>
@@ -323,6 +292,11 @@ function setupEventListeners() {
             const target = document.querySelector(link.getAttribute('href'));
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth' });
+                // Force reveal of target section in case IntersectionObserver hasn't fired yet (mobile anchor jump issue)
+                if (target.style && target.style.opacity === '0') {
+                    target.style.opacity = '1';
+                    target.style.transform = 'translateY(0)';
+                }
             }
             
             // Close mobile menu on mobile
@@ -639,33 +613,6 @@ function openARModal(dishName) {
     }
 }
 
-// Handle AR Click - Show notification or open AR
-function handleARClick(itemId, dishName, hasAR) {
-    if (hasAR) {
-        // Open AR modal for special dishes
-        openARModal(dishName);
-    } else {
-        // Show notification for other dishes
-        showARNotification();
-    }
-}
-
-// Show AR Notification Modal
-function showARNotification() {
-    const modal = document.getElementById('arNotificationModal');
-    if (modal) {
-        modal.style.display = 'flex';
-    }
-}
-
-// Close AR Notification Modal
-function closeARNotification() {
-    const modal = document.getElementById('arNotificationModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
 // Scroll to Section
 function scrollToSection(sectionId) {
     const section = document.getElementById(sectionId);
@@ -714,11 +661,26 @@ function setupScrollAnimations() {
     
     // Observe sections
     document.querySelectorAll('section').forEach(section => {
-        section.style.opacity = '0';
-        section.style.transform = 'translateY(50px)';
-        section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-        observer.observe(section);
+        // Skip hiding the menu section to avoid initial white screen on mobile anchor navigation
+        if (section.id === 'menu') {
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        } else {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(50px)';
+            section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            observer.observe(section);
+        }
     });
+
+    // Safety: if user lands directly on #menu via hash in URL, ensure it's visible
+    if (window.location.hash === '#menu') {
+        const menuSection = document.getElementById('menu');
+        if (menuSection) {
+            menuSection.style.opacity = '1';
+            menuSection.style.transform = 'translateY(0)';
+        }
+    }
 }
 
 // Add animations to the page
