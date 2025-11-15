@@ -4,7 +4,7 @@ const menuData = [
         id: 1,
         name: 'Caesar Salad',
         category: 'appetizers',
-        price: 12.99,
+        price: 1079,
         description: 'Crisp romaine lettuce with parmesan and croutons',
         image: 'images/Caesar_Salad.png',
         badge: 'Popular',
@@ -14,7 +14,7 @@ const menuData = [
         id: 2,
         name: 'Garlic Bread',
         category: 'appetizers',
-        price: 8.99,
+        price: 749,
         description: 'Toasted bread with garlic butter and herbs',
         image: 'images/Garlic_Bread.jpg',
         badge: 'New',
@@ -24,7 +24,7 @@ const menuData = [
         id: 3,
         name: 'Bruschetta',
         category: 'appetizers',
-        price: 10.99,
+        price: 912,
         description: 'Grilled bread with tomatoes and basil',
         image: 'images/Bruschetta.png',
         badge: '',
@@ -34,7 +34,7 @@ const menuData = [
         id: 4,
         name: 'Grilled Salmon',
         category: 'main',
-        price: 28.99,
+        price: 2406,
         description: 'Fresh salmon with lemon butter sauce',
         image: 'images/Grilled_Salmon.png',
         badge: 'Chef Special',
@@ -44,7 +44,7 @@ const menuData = [
         id: 5,
         name: 'Ribeye Steak',
         category: 'main',
-        price: 35.99,
+        price: 2987,
         description: 'Premium ribeye with garlic mashed potatoes',
         image: 'images/Ribeye_Steak.png',
         badge: 'Premium',
@@ -54,7 +54,7 @@ const menuData = [
         id: 6,
         name: 'Chicken Parmesan',
         category: 'main',
-        price: 22.99,
+        price: 1908,
         description: 'Breaded chicken with marinara and cheese',
         image: 'images/Chicken_Parmesan.png',
         badge: 'Popular',
@@ -64,7 +64,7 @@ const menuData = [
         id: 7,
         name: 'Vegetable Pasta',
         category: 'main',
-        price: 18.99,
+        price: 1576,
         description: 'Fresh pasta with seasonal vegetables',
         image: 'images/Vegetable_Pasta.png',
         badge: 'Vegan',
@@ -74,7 +74,7 @@ const menuData = [
         id: 8,
         name: 'Lobster Risotto',
         category: 'main',
-        price: 38.99,
+        price: 3236,
         description: 'Creamy risotto with fresh lobster',
         image: 'images/Lobster_Risotto.jpg',
         badge: 'Premium',
@@ -84,7 +84,7 @@ const menuData = [
         id: 9,
         name: 'Chocolate Lava Cake',
         category: 'desserts',
-        price: 9.99,
+        price: 829,
         description: 'Warm chocolate cake with molten center',
         image: 'images/Chocolate_Lava_Cake.png',
         badge: 'Popular',
@@ -94,7 +94,7 @@ const menuData = [
         id: 10,
         name: 'Tiramisu',
         category: 'desserts',
-        price: 8.99,
+        price: 746,
         description: 'Classic Italian coffee-flavored dessert',
         image: 'images/Tiramisu.png',
         badge: '',
@@ -104,7 +104,7 @@ const menuData = [
         id: 11,
         name: 'Cheesecake',
         category: 'desserts',
-        price: 10.99,
+        price: 912,
         description: 'New York style with berry compote',
         image: 'images/Cheesecake.jpg',
         badge: 'Chef Special',
@@ -114,7 +114,7 @@ const menuData = [
         id: 12,
         name: 'Fresh Lemonade',
         category: 'beverages',
-        price: 4.99,
+        price: 414,
         description: 'Freshly squeezed lemonade',
         image: 'images/Fresh_Lemonade.jpg',
         badge: '',
@@ -124,7 +124,7 @@ const menuData = [
         id: 13,
         name: 'Iced Coffee',
         category: 'beverages',
-        price: 5.99,
+        price: 497,
         description: 'Cold brew with ice and cream',
         image: 'images/Iced_Coffee.png',
         badge: 'Popular',
@@ -134,7 +134,7 @@ const menuData = [
         id: 14,
         name: 'Mojito',
         category: 'beverages',
-        price: 8.99,
+        price: 746,
         description: 'Classic Cuban cocktail',
         image: 'images/Mojito.png',
         badge: 'Signature',
@@ -144,7 +144,7 @@ const menuData = [
         id: 15,
         name: 'Samosa',
         category: 'appetizers',
-        price: 4.99,
+        price: 414,
         description: 'Golden fried pastry with spiced filling',
         image: 'images/samosa.jpg',
         badge: 'AR Available',
@@ -154,7 +154,7 @@ const menuData = [
         id: 16,
         name: 'Pizza',
         category: 'main',
-        price: 18.99,
+        price: 1576,
         description: 'Wood-fired artisan pizza with fresh toppings',
         image: 'images/pizza.jpg',
         badge: 'AR Available',
@@ -164,7 +164,7 @@ const menuData = [
         id: 17,
         name: 'Monster Energy Drink',
         category: 'beverages',
-        price: 3.99,
+        price: 331,
         description: 'Refreshing energy boost',
         image: 'images/Monster_Energy_Drink.jpg',
         badge: 'AR Available',
@@ -246,7 +246,7 @@ function createMenuItem(item, index) {
         <div class="menu-item-content" style="padding: 1.5rem; background: white;">
             <div class="menu-item-header">
                 <h3 class="menu-item-title" style="color: #1a1a2e; font-size: 1.2rem; font-weight: 600;">${item.name}</h3>
-                <span class="menu-item-price" style="color: #ff6b6b; font-size: 1.3rem; font-weight: bold;">$${item.price}</span>
+                <span class="menu-item-price" style="color: #ff6b6b; font-size: 1.3rem; font-weight: bold;">₹${item.price}</span>
             </div>
             <p class="menu-item-description" style="color: #666; font-size: 0.95rem; margin-bottom: 1rem;">${item.description}</p>
             <div class="menu-item-footer">
@@ -471,7 +471,7 @@ function updateCartUI() {
                 </div>
                 <div class="cart-item-details">
                     <div class="cart-item-name">${item.name}</div>
-                    <div class="cart-item-price">$${item.price}</div>
+                    <div class="cart-item-price">₹${item.price}</div>
                     <div class="cart-item-quantity">
                         <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
                         <span>${item.quantity}</span>
@@ -512,13 +512,13 @@ function removeFromCart(itemId) {
 function updateOrderSummary() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const tax = subtotal * 0.1;
-    const delivery = cart.length > 0 ? 5.00 : 0;
+    const delivery = cart.length > 0 ? 415 : 0;
     const total = subtotal + tax + delivery;
     
-    document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
-    document.getElementById('delivery').textContent = `$${delivery.toFixed(2)}`;
-    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('subtotal').textContent = `₹${Math.round(subtotal)}`;
+    document.getElementById('tax').textContent = `₹${Math.round(tax)}`;
+    document.getElementById('delivery').textContent = `₹${delivery}`;
+    document.getElementById('total').textContent = `₹${Math.round(total)}`;
 }
 
 // Chat Functions
@@ -581,9 +581,9 @@ function getBotResponse(message) {
     } else if (lowerMessage.includes('special') || lowerMessage.includes('today')) {
         return "Today's specials include our Mediterranean Delight salad and Lobster Risotto. Both are prepared with fresh, locally-sourced ingredients!";
     } else if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
-        return "Our menu items range from $4.99 for beverages to $38.99 for premium dishes. We also offer combo deals! Would you like to know more about any specific item?";
+        return "Our menu items range from ₹331 for beverages to ₹3236 for premium dishes. We also offer combo deals! Would you like to know more about any specific item?";
     } else if (lowerMessage.includes('delivery') || lowerMessage.includes('order')) {
-        return "Yes, we deliver! Delivery fee is $5.00 and typically takes 30-45 minutes. You can place your order through our cart section. Need help with anything else?";
+        return "Yes, we deliver! Delivery fee is ₹415 and typically takes 30-45 minutes. You can place your order through our cart section. Need help with anything else?";
     } else {
         return "I'm here to help! I can recommend dishes, answer questions about ingredients, dietary options, or help you place an order. What would you like to know?";
     }
@@ -600,6 +600,12 @@ function openARModal(dishName, hasAR) {
         'Monster Energy': 'monster_energy_drink.glb',
         'Monster Energy Drink': 'monster_energy_drink.glb'
     };
+
+    // If hasAR not provided, look it up from menuData
+    if (hasAR === undefined) {
+        const dish = menuData.find(item => item.name === dishName);
+        hasAR = dish ? dish.hasAR : false;
+    }
 
     // If dish has AR support, redirect to AR viewer
     if (hasAR && dishToModelMap[dishName]) {
