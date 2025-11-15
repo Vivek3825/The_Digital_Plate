@@ -168,9 +168,147 @@
                 </button>
             </div>
 
-            <!-- Menu Items Grid -->
+            <!-- Menu Items Grid - STATIC HTML (NO JAVASCRIPT) -->
             <div id="menuGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;">
-                <!-- Menu items will be dynamically added here by JavaScript -->
+                
+                <!-- Menu Item 1: Caesar Salad -->
+                <div class="menu-item" data-category="appetizers" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <div style="position: relative; height: 250px; overflow: hidden; background: #e0e0e0;">
+                        <img src="images/Caesar_Salad.png" alt="Caesar Salad" style="width: 100%; height: 100%; object-fit: cover;">
+                        <span style="position: absolute; top: 15px; right: 15px; background: #ffe66d; color: #1a1a2e; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Popular</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <h3 style="color: #1a1a2e; font-size: 1.3rem; font-weight: 600; margin: 0;">Caesar Salad</h3>
+                            <span style="color: #ff6b6b; font-size: 1.4rem; font-weight: 700;">$12.99</span>
+                        </div>
+                        <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">Crisp romaine lettuce with parmesan and croutons</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="showARNotification()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cube"></i> AR View
+                            </button>
+                            <button onclick="addToCart(1)" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Item 2: Samosa (AR Available) -->
+                <div class="menu-item" data-category="appetizers" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <div style="position: relative; height: 250px; overflow: hidden; background: #e0e0e0;">
+                        <img src="images/samosa.jpg" alt="Samosa" style="width: 100%; height: 100%; object-fit: cover;">
+                        <span style="position: absolute; top: 15px; right: 15px; background: #4ecdc4; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">AR Available</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <h3 style="color: #1a1a2e; font-size: 1.3rem; font-weight: 600; margin: 0;">Samosa</h3>
+                            <span style="color: #ff6b6b; font-size: 1.4rem; font-weight: 700;">$4.99</span>
+                        </div>
+                        <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">Golden fried pastry with spiced filling</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="openARModal('Samosa')" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cube"></i> AR View
+                            </button>
+                            <button onclick="addToCart(15)" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Item 3: Pizza (AR Available) -->
+                <div class="menu-item" data-category="main" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <div style="position: relative; height: 250px; overflow: hidden; background: #e0e0e0;">
+                        <img src="images/pizza.jpg" alt="Pizza" style="width: 100%; height: 100%; object-fit: cover;">
+                        <span style="position: absolute; top: 15px; right: 15px; background: #4ecdc4; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">AR Available</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <h3 style="color: #1a1a2e; font-size: 1.3rem; font-weight: 600; margin: 0;">Artisan Pizza</h3>
+                            <span style="color: #ff6b6b; font-size: 1.4rem; font-weight: 700;">$18.99</span>
+                        </div>
+                        <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">Wood-fired pizza with fresh toppings</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="openARModal('Pizza')" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cube"></i> AR View
+                            </button>
+                            <button onclick="addToCart(16)" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Item 4: Grilled Salmon -->
+                <div class="menu-item" data-category="main" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <div style="position: relative; height: 250px; overflow: hidden; background: #e0e0e0;">
+                        <img src="images/Grilled_Salmon.png" alt="Grilled Salmon" style="width: 100%; height: 100%; object-fit: cover;">
+                        <span style="position: absolute; top: 15px; right: 15px; background: #ffe66d; color: #1a1a2e; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Chef Special</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <h3 style="color: #1a1a2e; font-size: 1.3rem; font-weight: 600; margin: 0;">Grilled Salmon</h3>
+                            <span style="color: #ff6b6b; font-size: 1.4rem; font-weight: 700;">$28.99</span>
+                        </div>
+                        <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">Fresh salmon with lemon butter sauce</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="showARNotification()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cube"></i> AR View
+                            </button>
+                            <button onclick="addToCart(4)" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Item 5: Chocolate Lava Cake -->
+                <div class="menu-item" data-category="desserts" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <div style="position: relative; height: 250px; overflow: hidden; background: #e0e0e0;">
+                        <img src="images/Chocolate_Lava_Cake.png" alt="Chocolate Lava Cake" style="width: 100%; height: 100%; object-fit: cover;">
+                        <span style="position: absolute; top: 15px; right: 15px; background: #ffe66d; color: #1a1a2e; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Popular</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <h3 style="color: #1a1a2e; font-size: 1.3rem; font-weight: 600; margin: 0;">Chocolate Lava Cake</h3>
+                            <span style="color: #ff6b6b; font-size: 1.4rem; font-weight: 700;">$9.99</span>
+                        </div>
+                        <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">Warm chocolate cake with molten center</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="showARNotification()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cube"></i> AR View
+                            </button>
+                            <button onclick="addToCart(9)" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Item 6: Monster Energy (AR Available) -->
+                <div class="menu-item" data-category="beverages" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <div style="position: relative; height: 250px; overflow: hidden; background: #e0e0e0;">
+                        <img src="images/Monster_Energy_Drink.jpg" alt="Monster Energy" style="width: 100%; height: 100%; object-fit: cover;">
+                        <span style="position: absolute; top: 15px; right: 15px; background: #4ecdc4; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">AR Available</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <h3 style="color: #1a1a2e; font-size: 1.3rem; font-weight: 600; margin: 0;">Monster Energy</h3>
+                            <span style="color: #ff6b6b; font-size: 1.4rem; font-weight: 700;">$3.99</span>
+                        </div>
+                        <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">Refreshing energy boost</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="openARModal('Monster Energy Drink')" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cube"></i> AR View
+                            </button>
+                            <button onclick="addToCart(17)" style="flex: 1; padding: 12px; background: #ff6b6b; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-cart-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
