@@ -665,6 +665,14 @@ button,
     background: var(--light-color);
     position: relative;
     z-index: 1;
+    min-height: 100vh;
+    width: 100%;
+    display: block;
+}
+
+.menu-section .container {
+    width: 100%;
+    max-width: 1200px;
 }
 
 .menu-section .section-title {
@@ -711,6 +719,8 @@ button,
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
+    width: 100%;
+    min-height: 200px;
 }
 
 .menu-item {
@@ -719,12 +729,19 @@ button,
     overflow: hidden;
     box-shadow: var(--box-shadow);
     transition: var(--transition);
-    opacity: 0;
-    transform: translateY(30px);
+    opacity: 1;
+    transform: translateY(0);
     animation: slideUp 0.5s ease forwards;
+    visibility: visible;
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
     to {
         opacity: 1;
         transform: translateY(0);

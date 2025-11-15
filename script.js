@@ -186,22 +186,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize Menu
 function initializeMenu() {
-    renderMenuItems(currentFilter);
+    console.log('Initializing menu with filter:', currentFilter);
+    const menuGrid = document.getElementById('menuGrid');
+    
+    if (!menuGrid) {
+        console.error('Menu grid not found in DOM!');
+        return;
+    }
+    
+    // Show loading state
+    menuGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-light); font-size: 1.2rem;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i><br>Loading menu...</div>';
+    
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+        renderMenuItems(currentFilter);
+    }, 100);
 }
 
 // Render Menu Items
 function renderMenuItems(category) {
     const menuGrid = document.getElementById('menuGrid');
+    
+    if (!menuGrid) {
+        console.error('Menu grid element not found!');
+        return;
+    }
+    
     menuGrid.innerHTML = '';
     
     const filteredItems = category === 'all' 
         ? menuData 
         : menuData.filter(item => item.category === category);
     
+    console.log(`Rendering ${filteredItems.length} menu items for category: ${category}`);
+    
     filteredItems.forEach((item, index) => {
         const menuItem = createMenuItem(item, index);
         menuGrid.appendChild(menuItem);
     });
+    
+    // Force layout recalculation to ensure visibility
+    menuGrid.offsetHeight;
 }
 
 // Create Menu Item Element
