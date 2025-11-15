@@ -591,20 +591,32 @@ function getBotResponse(message) {
 
 // AR Modal - Redirect to AR Environment
 function openARModal(dishName, hasAR) {
+    // Map dish names to model files
+    const dishToModelMap = {
+        'Crispy Samosa': 'samosa.glb',
+        'Samosa': 'samosa.glb',
+        'Artisan Pizza': 'pizza.glb',
+        'Pizza': 'pizza.glb',
+        'Monster Energy': 'monster_energy_drink.glb',
+        'Monster Energy Drink': 'monster_energy_drink.glb'
+    };
+
+    // If dish has AR support, redirect to AR viewer
+    if (hasAR && dishToModelMap[dishName]) {
+        const modelFile = dishToModelMap[dishName];
+        window.location.href = `AR_environment/custom-ar.html?model=${encodeURIComponent(modelFile)}`;
+        return;
+    }
+
+    // Otherwise show modal popup for dishes without AR
     const modal = document.getElementById('arModal');
     const note = document.getElementById('arNoteText');
     const title = document.getElementById('arModalTitle');
 
     if (!modal || !note || !title) return;
 
-    if (hasAR) {
-        // For special dishes we still show coming soon message (no redirect for now)
-        title.textContent = `AR Preview: ${dishName}`;
-        note.textContent = 'AR feature for this special dish is coming soon. Stay tuned!';
-    } else {
-        title.textContent = 'Augmented Reality';
-        note.textContent = 'AR feature is available only for special dishes... We are working on it.';
-    }
+    title.textContent = 'Augmented Reality';
+    note.textContent = 'AR feature is available only for special dishes... We are working on it.';
 
     modal.classList.add('active');
 }
