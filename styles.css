@@ -660,29 +660,47 @@ button,
 }
 
 /* ===== MENU SECTION ===== */
+/* ===== MENU SECTION ===== */
 .menu-section {
     padding: 100px 20px;
-    background: var(--light-color);
+    background: #f8f9fa !important;
     position: relative;
-    z-index: 1;
     min-height: 100vh;
     width: 100%;
-    display: block;
 }
 
 .menu-section .container {
     width: 100%;
     max-width: 1200px;
+    margin: 0 auto;
 }
 
 .menu-section .section-title {
-    color: var(--dark-color);
-    text-shadow: none;
+    color: #1a1a2e !important;
+    text-shadow: none !important;
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.menu-section .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #ffe66d, transparent);
+    border-radius: 2px;
 }
 
 .section-subtitle {
     text-align: center;
-    color: var(--text-light);
+    color: #666 !important;
     font-size: 1.1rem;
     margin-bottom: 3rem;
 }
@@ -697,20 +715,20 @@ button,
 
 .category-btn {
     padding: 12px 30px;
-    border: 2px solid var(--primary-color);
-    background: transparent;
-    color: var(--primary-color);
+    border: 2px solid #ff6b6b;
+    background: white;
+    color: #ff6b6b !important;
     border-radius: 25px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s ease;
 }
 
 .category-btn:hover,
 .category-btn.active {
-    background: var(--primary-color);
-    color: white;
+    background: #ff6b6b !important;
+    color: white !important;
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
 }
@@ -720,62 +738,44 @@ button,
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
     width: 100%;
-    min-height: 200px;
 }
 
 .menu-item {
-    background: white;
-    border-radius: var(--border-radius);
+    background: white !important;
+    border-radius: 15px;
     overflow: hidden;
-    box-shadow: var(--box-shadow);
-    transition: var(--transition);
-    opacity: 1;
-    transform: translateY(0);
-    animation: slideUp 0.5s ease forwards;
-    visibility: visible;
-    position: relative;
-    z-index: 1;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
 }
 
 .menu-item:hover {
     transform: translateY(-10px);
-    box-shadow: var(--hover-shadow);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
 .menu-item-image {
     position: relative;
     height: 200px;
     overflow: hidden;
+    background: #e0e0e0;
 }
 
 .menu-item-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s ease;
-}
-
-.menu-item:hover .menu-item-image img {
-    transform: scale(1.1) rotate(2deg);
+    display: block;
 }
 
 .menu-item-badge {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: var(--accent-color);
-    color: var(--dark-color);
+    background: #ffe66d;
+    color: #1a1a2e;
     padding: 5px 15px;
     border-radius: 20px;
     font-size: 0.85rem;
@@ -784,6 +784,7 @@ button,
 
 .menu-item-content {
     padding: 1.5rem;
+    background: white;
 }
 
 .menu-item-header {
@@ -795,19 +796,21 @@ button,
 
 .menu-item-title {
     font-size: 1.2rem;
-    color: var(--dark-color);
+    color: #1a1a2e !important;
+    font-weight: 600;
 }
 
 .menu-item-price {
     font-size: 1.3rem;
     font-weight: bold;
-    color: var(--primary-color);
+    color: #ff6b6b !important;
 }
 
 .menu-item-description {
-    color: var(--text-light);
+    color: #666 !important;
     margin-bottom: 1rem;
     font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .menu-item-footer {
@@ -823,42 +826,36 @@ button,
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 5px;
+    font-size: 0.9rem;
 }
 
 .btn-ar {
-    background: var(--secondary-color);
-    color: white;
+    background: #4ecdc4 !important;
+    color: white !important;
 }
 
 .btn-ar:hover {
-    background: var(--dark-color);
+    background: #1a1a2e !important;
     transform: scale(1.05);
 }
 
 .btn-add-cart {
-    background: var(--primary-color);
-    color: white;
+    background: #ff6b6b !important;
+    color: white !important;
 }
 
 .btn-add-cart:hover {
-    background: var(--dark-color);
+    background: #1a1a2e !important;
     transform: scale(1.05);
 }
 
 .btn-add-cart.added {
-    background: #4caf50;
-    animation: addedEffect 0.5s ease;
-}
-
-@keyframes addedEffect {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    background: #4caf50 !important;
 }
 
 /* ===== ORDER SECTION ===== */
@@ -1701,7 +1698,18 @@ button,
 
     /* Menu Section */
     .menu-section {
-        padding: 80px 15px;
+        padding: 80px 15px !important;
+        background: #f8f9fa !important;
+    }
+
+    .menu-section .section-title {
+        font-size: 2rem !important;
+        color: #1a1a2e !important;
+    }
+
+    .menu-section .section-subtitle {
+        font-size: 1rem !important;
+        color: #666 !important;
     }
 
     .menu-categories {
@@ -1712,15 +1720,46 @@ button,
     .category-btn {
         padding: 10px 20px;
         font-size: 0.9rem;
+        background: white !important;
+        color: #ff6b6b !important;
+    }
+
+    .category-btn.active {
+        background: #ff6b6b !important;
+        color: white !important;
     }
     
     .menu-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: 1.5rem;
     }
 
     .menu-item {
         max-width: 100%;
+        background: white !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    .menu-item-title {
+        font-size: 1.1rem !important;
+        color: #1a1a2e !important;
+    }
+
+    .menu-item-price {
+        font-size: 1.2rem !important;
+        color: #ff6b6b !important;
+    }
+
+    .menu-item-description {
+        color: #666 !important;
+        font-size: 0.9rem !important;
+    }
+
+    .btn-ar,
+    .btn-add-cart {
+        font-size: 0.85rem;
+        padding: 8px;
     }
     
     /* Orders Section */

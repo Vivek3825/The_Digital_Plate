@@ -186,21 +186,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize Menu
 function initializeMenu() {
-    console.log('Initializing menu with filter:', currentFilter);
+    console.log('🍽️ Initializing menu...');
     const menuGrid = document.getElementById('menuGrid');
     
     if (!menuGrid) {
-        console.error('Menu grid not found in DOM!');
+        console.error('❌ Menu grid not found in DOM!');
         return;
     }
     
-    // Show loading state
-    menuGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-light); font-size: 1.2rem;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i><br>Loading menu...</div>';
-    
-    // Small delay to ensure DOM is ready
-    setTimeout(() => {
-        renderMenuItems(currentFilter);
-    }, 100);
+    // Immediately render items
+    renderMenuItems(currentFilter);
+    console.log('✅ Menu initialized successfully');
 }
 
 // Render Menu Items
@@ -208,54 +204,72 @@ function renderMenuItems(category) {
     const menuGrid = document.getElementById('menuGrid');
     
     if (!menuGrid) {
-        console.error('Menu grid element not found!');
+        console.error('❌ Menu grid element not found!');
         return;
     }
     
+    // Clear existing content
     menuGrid.innerHTML = '';
+    menuGrid.style.display = 'grid';
+    menuGrid.style.visibility = 'visible';
+    menuGrid.style.opacity = '1';
     
     const filteredItems = category === 'all' 
         ? menuData 
         : menuData.filter(item => item.category === category);
     
-    console.log(`Rendering ${filteredItems.length} menu items for category: ${category}`);
+    console.log(`📋 Rendering ${filteredItems.length} menu items for category: ${category}`);
+    
+    if (filteredItems.length === 0) {
+        menuGrid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #666;">
+                <i class="fas fa-utensils" style="font-size: 3rem; margin-bottom: 1rem; color: #ff6b6b;"></i>
+                <p style="font-size: 1.2rem;">No items found in this category</p>
+            </div>
+        `;
+        return;
+    }
     
     filteredItems.forEach((item, index) => {
         const menuItem = createMenuItem(item, index);
         menuGrid.appendChild(menuItem);
     });
     
-    // Force layout recalculation to ensure visibility
-    menuGrid.offsetHeight;
+    console.log(`✅ ${filteredItems.length} menu items rendered successfully`);
 }
 
 // Create Menu Item Element
 function createMenuItem(item, index) {
     const div = document.createElement('div');
     div.className = 'menu-item';
-    div.style.animationDelay = `${index * 0.1}s`;
+    
+    // Ensure visibility with inline styles
+    div.style.opacity = '1';
+    div.style.visibility = 'visible';
+    div.style.display = 'block';
+    div.style.backgroundColor = 'white';
     
     // Conditionally render AR button only for items with AR support
     const arButton = item.hasAR 
-        ? `<button class="btn-ar" onclick="openARModal('${item.name}')">
+        ? `<button class="btn-ar" onclick="openARModal('${item.name}')" style="background: #4ecdc4; color: white;">
                 <i class="fas fa-cube"></i> AR
             </button>`
         : '';
     
     div.innerHTML = `
-        <div class="menu-item-image">
-            <img src="${item.image}" alt="${item.name}">
-            ${item.badge ? `<span class="menu-item-badge">${item.badge}</span>` : ''}
+        <div class="menu-item-image" style="background: #e0e0e0;">
+            <img src="${item.image}" alt="${item.name}" style="display: block; width: 100%; height: 100%; object-fit: cover;">
+            ${item.badge ? `<span class="menu-item-badge" style="background: #ffe66d; color: #1a1a2e;">${item.badge}</span>` : ''}
         </div>
-        <div class="menu-item-content">
+        <div class="menu-item-content" style="padding: 1.5rem; background: white;">
             <div class="menu-item-header">
-                <h3 class="menu-item-title">${item.name}</h3>
-                <span class="menu-item-price">$${item.price}</span>
+                <h3 class="menu-item-title" style="color: #1a1a2e; font-size: 1.2rem; font-weight: 600;">${item.name}</h3>
+                <span class="menu-item-price" style="color: #ff6b6b; font-size: 1.3rem; font-weight: bold;">$${item.price}</span>
             </div>
-            <p class="menu-item-description">${item.description}</p>
+            <p class="menu-item-description" style="color: #666; font-size: 0.95rem; margin-bottom: 1rem;">${item.description}</p>
             <div class="menu-item-footer">
                 ${arButton}
-                <button class="btn-add-cart" onclick="addToCart(${item.id})">
+                <button class="btn-add-cart" onclick="addToCart(${item.id})" style="background: #ff6b6b; color: white;">
                     <i class="fas fa-cart-plus"></i> Add to Cart
                 </button>
             </div>

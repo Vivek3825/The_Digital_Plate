@@ -132,23 +132,27 @@
     </section>
 
     <!-- Menu Section -->
-    <section id="menu" class="menu-section">
-        <div class="container">
-            <h2 class="section-title">Our Menu</h2>
-            <p class="section-subtitle">Discover our exquisite collection of dishes</p>
+    <section id="menu" class="menu-section" style="background: #f8f9fa; min-height: 100vh; padding: 100px 20px;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto;">
+            <h2 class="section-title" style="color: #1a1a2e; text-align: center; font-size: 2.5rem; margin-bottom: 1rem;">Our Menu</h2>
+            <p class="section-subtitle" style="text-align: center; color: #666; font-size: 1.1rem; margin-bottom: 3rem;">Discover our exquisite collection of dishes</p>
 
             <!-- Menu Categories -->
-            <div class="menu-categories">
-                <button class="category-btn active" data-category="all">All</button>
-                <button class="category-btn" data-category="appetizers">Appetizers</button>
-                <button class="category-btn" data-category="main">Main Course</button>
-                <button class="category-btn" data-category="desserts">Desserts</button>
-                <button class="category-btn" data-category="beverages">Beverages</button>
+            <div class="menu-categories" style="display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem;">
+                <button class="category-btn active" data-category="all" style="padding: 12px 30px; background: #ff6b6b; color: white; border: 2px solid #ff6b6b; border-radius: 25px;">All</button>
+                <button class="category-btn" data-category="appetizers" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px;">Appetizers</button>
+                <button class="category-btn" data-category="main" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px;">Main Course</button>
+                <button class="category-btn" data-category="desserts" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px;">Desserts</button>
+                <button class="category-btn" data-category="beverages" style="padding: 12px 30px; background: white; color: #ff6b6b; border: 2px solid #ff6b6b; border-radius: 25px;">Beverages</button>
             </div>
 
             <!-- Menu Items Grid -->
-            <div class="menu-grid" id="menuGrid">
+            <div class="menu-grid" id="menuGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; opacity: 1; visibility: visible;">
                 <!-- Menu items will be populated by JavaScript -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #666; background: white; border-radius: 15px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #ff6b6b; margin-bottom: 1rem;"></i>
+                    <p style="font-size: 1.1rem;">Loading delicious menu...</p>
+                </div>
             </div>
         </div>
     </section>
