@@ -232,14 +232,12 @@ function renderMenuItems(category) {
 function createMenuItem(item, index) {
     const div = document.createElement('div');
     div.className = 'menu-item';
-    
-    // Conditionally render AR button only for items with AR support
-    const arButton = item.hasAR 
-        ? `<button class="btn-ar" onclick="openARModal('${item.name}')" style="background: #4ecdc4; color: white;">
-                <i class="fas fa-cube"></i> AR
-            </button>`
-        : '';
-    
+
+    // Always render AR button. If not special, clicking still shows info popup.
+    const arButton = `<button class="btn-ar" onclick="openARModal('${item.name}', ${item.hasAR})" style="background: #4ecdc4; color: white;">
+            <i class="fas fa-cube"></i> AR
+        </button>`;
+
     div.innerHTML = `
         <div class="menu-item-image" style="background: #e0e0e0;">
             <img src="${item.image}" alt="${item.name}" style="display: block; width: 100%; height: 100%; object-fit: cover;">
@@ -259,7 +257,7 @@ function createMenuItem(item, index) {
             </div>
         </div>
     `;
-    
+
     return div;
 }
 
@@ -592,26 +590,35 @@ function getBotResponse(message) {
 }
 
 // AR Modal - Redirect to AR Environment
-function openARModal(dishName) {
-    // Map dish names to model files
-    const dishToModelMap = {
-        'Crispy Samosa': 'samosa.glb',
-        'Samosa': 'samosa.glb',
-        'Artisan Pizza': 'pizza.glb',
-        'Pizza': 'pizza.glb',
-        'Monster Energy': 'monster_energy_drink.glb',
-        'Monster Energy Drink': 'monster_energy_drink.glb'
-    };
-    
-    // Redirect directly to AR viewer with the model
-    if (dishName && dishToModelMap[dishName]) {
-        const modelFile = dishToModelMap[dishName];
-        window.location.href = `AR_environment/custom-ar.html?model=${encodeURIComponent(modelFile)}`;
+function openARModal(dishName, hasAR) {
+    const modal = document.getElementById('arModal');
+    const note = document.getElementById('arNoteText');
+    const title = document.getElementById('arModalTitle');
+
+    if (!modal || !note || !title) return;
+
+    if (hasAR) {
+        // For special dishes we still show coming soon message (no redirect for now)
+        title.textContent = `AR Preview: ${dishName}`;
+        note.textContent = 'AR feature for this special dish is coming soon. Stay tuned!';
     } else {
-        // If no dish specified or not found, show error
-        alert('AR model not available for this dish. Please select a dish with AR support.');
+        title.textContent = 'Augmented Reality';
+        note.textContent = 'AR feature is available only for special dishes... We are working on it.';
     }
+
+    modal.classList.add('active');
 }
+
+// Close AR modal button handler (dynamic element exists in HTML)
+document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.getElementById('arModalCloseBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            const modal = document.getElementById('arModal');
+            if (modal) modal.classList.remove('active');
+        });
+    }
+});
 
 // Scroll to Section
 function scrollToSection(sectionId) {
