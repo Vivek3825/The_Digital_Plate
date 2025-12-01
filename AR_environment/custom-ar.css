@@ -23,34 +23,6 @@ body {
     touch-action: none;
 }
 
-/* Back Button */
-.back-button {
-    position: absolute;
-    top: max(20px, env(safe-area-inset-top, 20px));
-    left: max(20px, env(safe-area-inset-left, 20px));
-    background: rgba(255, 255, 255, 0.95);
-    border: none;
-    padding: 12px 24px;
-    border-radius: 25px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    transition: transform 0.2s ease, background 0.2s ease;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-}
-
-.back-button:hover {
-    transform: translateY(-2px);
-    background: white;
-}
-
-.back-button:active {
-    transform: translateY(0);
-}
-
 /* Video Feed */
 #video {
     position: absolute;
@@ -75,74 +47,6 @@ body {
     touch-action: none;
     -webkit-user-select: none;
     user-select: none;
-}
-
-/* Start Screen */
-.start-screen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
-
-.start-content {
-    text-align: center;
-    color: white;
-    padding: 40px;
-    max-width: 500px;
-}
-
-.start-content h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.description {
-    font-size: 1.1rem;
-    margin-bottom: 30px;
-    line-height: 1.6;
-    opacity: 0.95;
-}
-
-.start-ar-btn {
-    background: white;
-    color: #667eea;
-    border: none;
-    padding: 18px 40px;
-    border-radius: 30px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin-bottom: 30px;
-}
-
-.start-ar-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
-}
-
-.start-ar-btn:active {
-    transform: translateY(0);
-}
-
-.features {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.feature {
-    font-size: 0.95rem;
-    opacity: 0.9;
 }
 
 /* AR Controls Overlay */
@@ -220,27 +124,6 @@ body {
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.2);
-    user-select: none;
-}
-
-.gesture-hints {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 0 10px;
-}
-
-.gesture-hints span {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 10px 18px;
-    border-radius: 18px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #333;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
-    border: 2px solid rgba(102, 126, 234, 0.2);
-    white-space: nowrap;
     user-select: none;
 }
 
@@ -421,11 +304,6 @@ body {
         width: 45px;
         height: 45px;
         font-size: 1.2rem;
-    }
-
-    .gesture-hints span {
-        font-size: 0.7rem;
-        padding: 6px 10px;
     }
 
     .position-info {

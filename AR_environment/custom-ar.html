@@ -15,30 +15,16 @@
 </head>
 <body>
     <div class="ar-container">
-        <button class="back-button" onclick="window.location.href='../index.html'">
-            ← Back to Menu
-        </button>
-
         <!-- Camera Feed -->
         <video id="video" autoplay playsinline></video>
         
         <!-- Canvas for 3D rendering on top of camera -->
         <canvas id="arCanvas"></canvas>
         
-        <!-- Start AR Button -->
-        <div id="startScreen" class="start-screen">
-            <div class="start-content">
-                <h1 id="modelTitle">View in AR</h1>
-                <p class="description">Place this 3D model in your real environment using your camera</p>
-                <button id="openCamera" class="start-ar-btn">
-                    📷 Start AR Experience
-                </button>
-                <div class="features">
-                    <div class="feature">✓ Camera feed integration</div>
-                    <div class="feature">✓ Surface detection</div>
-                    <div class="feature">✓ Gesture controls</div>
-                </div>
-            </div>
+        <!-- Loading Indicator (shown initially) -->
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="spinner"></div>
+            <p>Initializing AR Experience...</p>
         </div>
 
         <!-- AR Controls Overlay -->
@@ -62,23 +48,11 @@
                 <div class="position-info">
                     <span id="positionText">👇 Tap the green circle to place model</span>
                 </div>
-                <div class="gesture-hints" id="gestureHints">
-                    <span>👆 Tap to place</span>
-                    <span>🤏 Pinch to scale</span>
-                    <span>🔄 Two fingers to rotate</span>
-                    <span>↔️ Drag to move</span>
-                </div>
             </div>
 
             <button class="exit-ar-btn" id="exitArBtn">
                 ❌ Exit AR
             </button>
-        </div>
-
-        <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="loading-indicator hidden">
-            <div class="spinner"></div>
-            <p>Loading 3D Model...</p>
         </div>
     </div>
 

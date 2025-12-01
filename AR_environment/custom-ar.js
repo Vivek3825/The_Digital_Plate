@@ -46,23 +46,19 @@ function init() {
     // Update title
     const config = modelConfigs[modelFile];
     if (config) {
-        document.getElementById('modelTitle').textContent = config.name;
         document.title = `${config.name} - AR Viewer`;
     }
 
     // Setup event listeners
     setupEventListeners(modelFile);
+    
+    // Automatically start AR experience
+    startARExperience(modelFile);
 }
 
 function setupEventListeners(modelFile) {
-    const openCameraBtn = document.getElementById('openCamera');
     const exitArBtn = document.getElementById('exitArBtn');
     const canvas = document.getElementById('arCanvas');
-
-    // Camera integration using your provided code
-    openCameraBtn.addEventListener('click', async () => {
-        await startARExperience(modelFile);
-    });
 
     // Exit AR
     exitArBtn.addEventListener('click', () => {
@@ -97,7 +93,6 @@ function setupEventListeners(modelFile) {
 // Start AR Experience with camera feed
 async function startARExperience(modelFile) {
     const video = document.getElementById('video');
-    const startScreen = document.getElementById('startScreen');
     const arControls = document.getElementById('arControls');
     const canvas = document.getElementById('arCanvas');
     const loadingIndicator = document.getElementById('loadingIndicator');
@@ -106,7 +101,26 @@ async function startARExperience(modelFile) {
         // Show loading
         loadingIndicator.classList.remove('hidden');
 
+        // Check if page is served securely
+        const isSecureContext = window.isSecureContext;
+        const protocol = window.location.protocol;
+        
+        console.log('[AR] Protocol:', protocol);
+        console.log('[AR] Secure Context:', isSecureContext);
+        console.log('[AR] navigator.mediaDevices available:', !!navigator.mediaDevices);
+        
+        // Check for HTTPS or localhost requirement
+        if (!isSecureContext && protocol !== 'https:' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+            throw new Error('AR requires HTTPS or localhost. Please run a local server (e.g., python3 -m http.server 8000) and access via http://localhost:8000');
+        }
+
+        // Check if getUserMedia is available
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Camera API not available. Please use HTTPS or run on localhost.');
+        }
+
         // Request camera access
+        console.log('[AR] Requesting camera access...');
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
                 facingMode: 'environment', // Use rear camera
@@ -115,6 +129,7 @@ async function startARExperience(modelFile) {
             } 
         });
         
+        console.log('[AR] Camera access granted');
         video.srcObject = stream;
         video.style.display = 'block';
         
@@ -125,11 +140,9 @@ async function startARExperience(modelFile) {
                 resolve();
             };
         });
-
-        // Hide start screen
-        startScreen.style.display = 'none';
         
         // Initialize Three.js scene
+        console.log('[AR] Initializing Three.js and loading model...');
         await initThreeJS(modelFile, video);
         
         // Show canvas and controls
@@ -141,6 +154,8 @@ async function startARExperience(modelFile) {
         
         isArActive = true;
         
+        console.log('[AR] AR Experience started successfully');
+        
         // Start rendering
         animate();
 
@@ -148,19 +163,34 @@ async function startARExperience(modelFile) {
         console.error('[AR] Experience Error:', error);
         loadingIndicator.classList.add('hidden');
         
-        let errorMessage = 'Unable to start AR experience. ';
-        if (error.name === 'NotAllowedError') {
-            errorMessage += 'Camera access was denied. Please allow camera permissions.';
+        let errorMessage = 'Unable to start AR experience.\n\n';
+        
+        if (error.message.includes('HTTPS') || error.message.includes('localhost')) {
+            errorMessage = '🔒 Security Error: AR features require HTTPS or localhost.\n\n';
+            errorMessage += 'Solution:\n';
+            errorMessage += '1. Open terminal in project folder\n';
+            errorMessage += '2. Run: python3 -m http.server 8000\n';
+            errorMessage += '3. Open: http://localhost:8000 in your browser\n';
+            errorMessage += '4. Navigate to AR page from there';
+        } else if (error.name === 'NotAllowedError') {
+            errorMessage += 'Camera access was denied. Please allow camera permissions in your browser settings.';
         } else if (error.name === 'NotFoundError') {
             errorMessage += 'No camera found on this device.';
         } else if (error.message.includes('GLTFLoader')) {
-            errorMessage += 'Failed to load 3D model viewer. Check internet connection.';
+            errorMessage += 'Failed to load 3D model viewer. Please check your internet connection.';
+        } else if (error.message.includes('Failed to load')) {
+            errorMessage += 'Failed to load 3D model. Please check if the model file exists in dish_models/ folder.';
         } else {
             errorMessage += error.message;
         }
         
         alert(errorMessage);
         console.error('[AR] Full error details:', error);
+        
+        // Redirect back to menu after error
+        setTimeout(() => {
+            window.location.href = '../index.html';
+        }, 2000);
     }
 }
 

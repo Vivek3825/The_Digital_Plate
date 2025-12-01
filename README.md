@@ -1,5 +1,56 @@
 # The_Digital_Plate
 
+## 🚀 Quick Start Guide
+
+### Prerequisites
+- Python 3 installed on your system
+- Modern web browser (Chrome, Firefox, Edge, or Safari)
+- Camera-enabled device for AR features
+
+### Running the Project
+
+**IMPORTANT**: AR features require HTTPS or localhost. Never open files directly with `file://` protocol.
+
+#### Method 1: Using Python HTTP Server (Recommended)
+```bash
+# Navigate to project directory
+cd The_Digital_Plate
+
+# Start local server
+python3 -m http.server 8000
+
+# Open in browser
+# Visit: http://localhost:8000
+```
+
+#### Method 2: Using Node.js (Alternative)
+```bash
+# Install http-server globally (one time only)
+npm install -g http-server
+
+# Start server
+http-server -p 8000
+
+# Open in browser
+# Visit: http://localhost:8000
+```
+
+### Common Issues
+
+❌ **"Cannot read properties of undefined (reading 'getUserMedia')"**
+- **Cause**: Page not served over HTTPS or localhost
+- **Solution**: Use one of the methods above to run a local server
+
+❌ **"Failed to load 3D model"**
+- **Cause**: Model files missing or incorrect path
+- **Solution**: Ensure `.glb` files exist in `AR_environment/dish_models/`
+
+❌ **Camera permission denied**
+- **Cause**: Browser blocked camera access
+- **Solution**: Allow camera permissions in browser settings
+
+---
+
 ## Working Flow
 
 ### 1. User scan the QR
