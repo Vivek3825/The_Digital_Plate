@@ -169,6 +169,36 @@ const menuData = [
         image: 'images/Monster_Energy_Drink.jpg',
         badge: 'AR Available',
         hasAR: true
+    },
+    {
+        id: 18,
+        name: 'Chicken Masala',
+        category: 'main',
+        price: 249,
+        description: 'Tender chicken in rich aromatic masala gravy',
+        image: 'images/Chicken_Masala.png',
+        badge: 'AR Available',
+        hasAR: true
+    },
+    {
+        id: 19,
+        name: 'Egg Masala Thali',
+        category: 'main',
+        price: 179,
+        description: 'Complete thali with egg curry, rice, and sides',
+        image: 'images/Egg_Masala.png',
+        badge: 'AR Available',
+        hasAR: true
+    },
+    {
+        id: 20,
+        name: 'Paneer Masala',
+        category: 'main',
+        price: 199,
+        description: 'Cottage cheese in creamy tomato-based gravy',
+        image: 'images/Paneer_Masala.png',
+        badge: 'AR Available',
+        hasAR: true
     }
 ];
 
@@ -597,9 +627,23 @@ function openARModal(dishName, hasAR) {
         'Samosa': 'samosa.glb',
         'Artisan Pizza': 'pizza.glb',
         'Pizza': 'pizza.glb',
+        'Cheeze Corn Pizza': 'pizza.glb',
         'Monster Energy': 'monster_energy_drink.glb',
-        'Monster Energy Drink': 'monster_energy_drink.glb'
+        'Monster Energy Drink': 'monster_energy_drink.glb',
+        'Chicken Masala': 'chicken.glb',
+        'Chicken_Masala': 'chicken.glb',
+        'Egg Masala Thali': 'egg_masala.glb',
+        'Egg_Masala_Thali': 'egg_masala.glb',
+        'Paneer Masala': 'paneer.glb',
+        'Paneer_Masala': 'paneer.glb'
     };
+
+    // If dish has a model mapping, redirect directly to AR viewer
+    if (dishToModelMap[dishName]) {
+        const modelFile = dishToModelMap[dishName];
+        window.location.href = `AR_environment/custom-ar.html?model=${encodeURIComponent(modelFile)}`;
+        return;
+    }
 
     // If hasAR not provided, look it up from menuData
     if (hasAR === undefined) {
@@ -607,11 +651,9 @@ function openARModal(dishName, hasAR) {
         hasAR = dish ? dish.hasAR : false;
     }
 
-    // If dish has AR support, redirect to AR viewer
-    if (hasAR && dishToModelMap[dishName]) {
-        const modelFile = dishToModelMap[dishName];
-        window.location.href = `AR_environment/custom-ar.html?model=${encodeURIComponent(modelFile)}`;
-        return;
+    // If dish has AR support but no mapping found, show error
+    if (hasAR) {
+        console.warn('AR model not found for:', dishName);
     }
 
     // Otherwise show modal popup for dishes without AR

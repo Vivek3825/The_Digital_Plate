@@ -32,10 +32,9 @@ const modelConfigs = {
     'pizza.glb': { name: 'Pizza 🍕', scale: 1.0 },
     'samosa.glb': { name: 'Samosa 🥟', scale: 0.8 },
     'monster_energy_drink.glb': { name: 'Monster Energy Drink 🥤', scale: 1.0 },
-    'chicken.glb': { name: 'Chicken Masala', scale: 1.0 },
-    'egg_masala.glb': { name: 'Egg Masala Thali 🍕', scale: 1.0 },
-    'paneer.glb': { name: 'Paneer Masala', scale: 1.0 },
-
+    'chicken.glb': { name: 'Chicken Masala 🍗', scale: 1.0 },
+    'egg_masala.glb': { name: 'Egg Masala Thali �', scale: 1.0 },
+    'paneer.glb': { name: 'Paneer Masala 🧀', scale: 1.0 }
 };
 
 const HIT_STABILITY_THRESHOLD = 3;
