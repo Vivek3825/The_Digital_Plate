@@ -49,6 +49,59 @@
                 <button class="control-icon-btn" id="rotateBtn" title="Toggle Rotation">
                     🔁
                 </button>
+                <button class="control-icon-btn" id="infoToggleBtn" title="Toggle Info">
+                    ℹ️
+                </button>
+            </div>
+            
+            <!-- Futuristic Holographic Info Panel -->
+            <div id="holoInfoPanel" class="holo-info-panel hidden">
+                <div class="holo-container">
+                    <!-- Scanning Line Effect -->
+                    <div class="holo-scan-line"></div>
+                    
+                    <!-- Corner Decorations -->
+                    <div class="holo-corner holo-corner-tl"></div>
+                    <div class="holo-corner holo-corner-tr"></div>
+                    <div class="holo-corner holo-corner-bl"></div>
+                    <div class="holo-corner holo-corner-br"></div>
+                    
+                    <!-- Main Info Content -->
+                    <div class="holo-content">
+                        <div class="holo-header">
+                            <div class="holo-icon">◈</div>
+                            <h2 id="holoDishName" class="holo-title">Loading...</h2>
+                            <div class="holo-status">
+                                <span class="status-dot"></span>
+                                <span>ANALYZING</span>
+                            </div>
+                        </div>
+                        
+                        <div class="holo-divider"></div>
+                        
+                        <div class="holo-section">
+                            <div class="holo-label">
+                                <span class="label-icon">🧬</span>
+                                <span>INGREDIENTS</span>
+                            </div>
+                            <p id="holoIngredients" class="holo-data">—</p>
+                        </div>
+                        
+                        <div class="holo-section">
+                            <div class="holo-label">
+                                <span class="label-icon">⚡</span>
+                                <span>NUTRIENTS</span>
+                            </div>
+                            <p id="holoNutrients" class="holo-data">—</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating Particles -->
+                    <div class="holo-particles">
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
             </div>
             
             <div class="position-controls">

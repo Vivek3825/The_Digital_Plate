@@ -375,3 +375,304 @@ body {
     }
 }
 
+/* ========================================
+   FUTURISTIC HOLOGRAPHIC INFO PANEL
+   ======================================== */
+
+.holo-info-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.holo-info-panel.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.holo-info-panel.hidden {
+    display: none;
+}
+
+.holo-container {
+    position: relative;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 255, 255, 0.08) 0%,
+        rgba(0, 150, 255, 0.12) 50%,
+        rgba(120, 0, 255, 0.08) 100%
+    );
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    border-radius: 15px;
+    padding: 20px 25px;
+    min-width: 280px;
+    max-width: 320px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 
+        0 0 30px rgba(0, 255, 255, 0.2),
+        0 0 60px rgba(0, 150, 255, 0.1),
+        inset 0 0 30px rgba(0, 255, 255, 0.05);
+    animation: holoFloat 3s ease-in-out infinite, holoGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes holoFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes holoGlow {
+    0% { box-shadow: 0 0 30px rgba(0, 255, 255, 0.2), 0 0 60px rgba(0, 150, 255, 0.1); }
+    100% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.35), 0 0 80px rgba(0, 150, 255, 0.2); }
+}
+
+/* Scanning Line Effect */
+.holo-scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.8), transparent);
+    animation: scanLine 2s linear infinite;
+    border-radius: 15px 15px 0 0;
+}
+
+@keyframes scanLine {
+    0% { top: 0; opacity: 1; }
+    100% { top: 100%; opacity: 0.3; }
+}
+
+/* Corner Decorations */
+.holo-corner {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-color: rgba(0, 255, 255, 0.8);
+    border-style: solid;
+}
+
+.holo-corner-tl {
+    top: -2px;
+    left: -2px;
+    border-width: 2px 0 0 2px;
+    border-radius: 10px 0 0 0;
+}
+
+.holo-corner-tr {
+    top: -2px;
+    right: -2px;
+    border-width: 2px 2px 0 0;
+    border-radius: 0 10px 0 0;
+}
+
+.holo-corner-bl {
+    bottom: -2px;
+    left: -2px;
+    border-width: 0 0 2px 2px;
+    border-radius: 0 0 0 10px;
+}
+
+.holo-corner-br {
+    bottom: -2px;
+    right: -2px;
+    border-width: 0 2px 2px 0;
+    border-radius: 0 0 10px 0;
+}
+
+/* Header */
+.holo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.holo-icon {
+    font-size: 1.5rem;
+    color: #00ffff;
+    animation: iconPulse 1.5s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+@keyframes iconPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.holo-title {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    margin: 0;
+}
+
+.holo-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.65rem;
+    color: #00ff88;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    background: #00ff88;
+    border-radius: 50%;
+    animation: statusBlink 1s ease-in-out infinite;
+    box-shadow: 0 0 8px #00ff88;
+}
+
+@keyframes statusBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Divider */
+.holo-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.6), transparent);
+    margin: 10px 0;
+}
+
+/* Sections */
+.holo-section {
+    margin-bottom: 15px;
+}
+
+.holo-section:last-child {
+    margin-bottom: 0;
+}
+
+.holo-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    color: #00ccff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.label-icon {
+    font-size: 0.9rem;
+}
+
+.holo-data {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    margin: 0;
+    padding-left: 22px;
+    border-left: 2px solid rgba(0, 255, 255, 0.3);
+    animation: dataFadeIn 0.5s ease forwards;
+}
+
+@keyframes dataFadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Floating Particles */
+.holo-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: 15px;
+}
+
+.holo-particles span {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(0, 255, 255, 0.6);
+    border-radius: 50%;
+    animation: particleFloat 4s linear infinite;
+}
+
+.holo-particles span:nth-child(1) { left: 10%; animation-delay: 0s; }
+.holo-particles span:nth-child(2) { left: 30%; animation-delay: 0.5s; }
+.holo-particles span:nth-child(3) { left: 50%; animation-delay: 1s; }
+.holo-particles span:nth-child(4) { left: 70%; animation-delay: 1.5s; }
+.holo-particles span:nth-child(5) { left: 85%; animation-delay: 2s; }
+.holo-particles span:nth-child(6) { left: 95%; animation-delay: 2.5s; }
+
+@keyframes particleFloat {
+    0% {
+        bottom: -10px;
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        bottom: 110%;
+        opacity: 0;
+    }
+}
+
+/* Panel appear animation */
+.holo-info-panel.visible .holo-container {
+    animation: holoPanelAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               holoFloat 3s ease-in-out 0.6s infinite,
+               holoGlow 2s ease-in-out 0.6s infinite alternate;
+}
+
+@keyframes holoPanelAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .holo-container {
+        min-width: 250px;
+        max-width: 280px;
+        padding: 15px 18px;
+    }
+    
+    .holo-title {
+        font-size: 1rem;
+    }
+    
+    .holo-data {
+        font-size: 0.8rem;
+    }
+}
+
+/* Position the panel to the side on larger screens */
+@media (min-width: 768px) {
+    .holo-info-panel {
+        top: 50%;
+        left: auto;
+        right: 100px;
+        transform: translateY(-50%);
+    }
+}

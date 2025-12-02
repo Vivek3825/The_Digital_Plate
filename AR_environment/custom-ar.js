@@ -29,13 +29,62 @@ let mouseStartY = 0;
 
 // Model configurations
 const modelConfigs = {
-    'pizza.glb': { name: 'Pizza 🍕', scale: 0.5 },
-    'samosa.glb': { name: 'Samosa 🥟', scale: 0.6 },
-    'monster_energy_drink.glb': { name: 'Monster Energy Drink 🥤', scale: 0.6 },
-    'chicken.glb': { name: 'Chicken Masala 🍗', scale: 0.6 },
-    'egg_masala.glb': { name: 'Egg Masala Thali �', scale: 0.5 },
-    'paneer.glb': { name: 'Paneer Masala 🧀', scale: 0.6 }
+    'pizza.glb': { name: 'Pizza 🍕', scale: 0.5, dishId: 16 },
+    'samosa.glb': { name: 'Samosa 🥟', scale: 0.6, dishId: 15 },
+    'monster_energy_drink.glb': { name: 'Monster Energy Drink 🥤', scale: 0.6, dishId: 17 },
+    'chicken.glb': { name: 'Chicken Masala 🍗', scale: 0.6, dishId: 18 },
+    'egg_masala.glb': { name: 'Egg Masala Thali 🍳', scale: 0.5, dishId: 19 },
+    'paneer.glb': { name: 'Paneer Masala 🧀', scale: 0.6, dishId: 20 }
 };
+
+// Dish details data (from ingredients_nutrients_filled.csv)
+const dishData = {
+    15: {
+        name: 'Samosa',
+        ingredients: 'Potatoes, peas, spices, flour pastry',
+        nutrients: 'Carbohydrates, fats, fiber, protein'
+    },
+    16: {
+        name: 'Pizza',
+        ingredients: 'Pizza dough, cheese, corn, tomato sauce, oregano',
+        nutrients: 'Carbohydrates, fats, calcium, protein'
+    },
+    17: {
+        name: 'Monster Energy Drink',
+        ingredients: 'Carbonated water, sugar, caffeine, taurine, B-vitamins',
+        nutrients: 'Carbohydrates, caffeine, B-vitamins'
+    },
+    18: {
+        name: 'Chicken Masala',
+        ingredients: 'Chicken, onions, tomatoes, garlic, ginger, masala spices',
+        nutrients: 'Protein, fats, iron, vitamin B6'
+    },
+    19: {
+        name: 'Egg Masala Thali',
+        ingredients: 'Eggs, onions, tomatoes, masala spices, rice, roti',
+        nutrients: 'Protein, carbohydrates, fats, vitamins A & B12'
+    },
+    20: {
+        name: 'Paneer Masala',
+        ingredients: 'Paneer, tomatoes, onions, cream, spices',
+        nutrients: 'Protein, fats, calcium'
+    }
+};
+
+// Info panel state
+let isInfoPanelVisible = false;
+let currentDishId = null;
+
+// Futuristic hologram elements (3D overlay around model)
+let hologramGroup = null;
+let hologramPulse = 0;
+const hologramState = {
+    sprites: [],
+    ring: null,
+    beam: null
+};
+const tempBox = new THREE.Box3();
+const tempVector = new THREE.Vector3();
 
 const HIT_STABILITY_THRESHOLD = 3;
 let consecutiveHitFrames = 0;
@@ -44,6 +93,306 @@ let consecutiveHitFrames = 0;
 function getModelFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('model');
+}
+
+// Show the holographic info panel with dish details
+function showHoloInfoPanel(modelFile) {
+    const config = modelConfigs[modelFile];
+    if (!config || !config.dishId) return;
+    
+    const dish = dishData[config.dishId];
+    if (!dish) return;
+    
+    currentDishId = config.dishId;
+    
+    // Update panel content
+    document.getElementById('holoDishName').textContent = dish.name;
+    document.getElementById('holoIngredients').textContent = dish.ingredients;
+    document.getElementById('holoNutrients').textContent = dish.nutrients;
+    
+    // Show panel with animation
+    const panel = document.getElementById('holoInfoPanel');
+    panel.classList.remove('hidden');
+    
+    // Trigger reflow for animation
+    void panel.offsetWidth;
+    panel.classList.add('visible');
+    
+    isInfoPanelVisible = true;
+    
+    // Update toggle button
+    const toggleBtn = document.getElementById('infoToggleBtn');
+    if (toggleBtn) {
+        toggleBtn.style.background = 'rgba(0, 255, 255, 0.3)';
+        toggleBtn.style.borderColor = 'rgba(0, 255, 255, 0.8)';
+    }
+    
+    updateHologramContent(dish);
+}
+
+// Hide the holographic info panel
+function hideHoloInfoPanel() {
+    const panel = document.getElementById('holoInfoPanel');
+    panel.classList.remove('visible');
+    
+    setTimeout(() => {
+        panel.classList.add('hidden');
+    }, 500);
+    
+    isInfoPanelVisible = false;
+    
+    // Update toggle button
+    const toggleBtn = document.getElementById('infoToggleBtn');
+    if (toggleBtn) {
+        toggleBtn.style.background = 'rgba(255, 255, 255, 0.95)';
+        toggleBtn.style.borderColor = 'transparent';
+    }
+    
+    hideHologramGroup();
+}
+
+// Toggle info panel visibility
+function toggleHoloInfoPanel() {
+    if (!isModelPlaced) return;
+    
+    if (isInfoPanelVisible) {
+        hideHoloInfoPanel();
+    } else {
+        const modelFile = getModelFromURL();
+        showHoloInfoPanel(modelFile);
+    }
+    
+    // Haptic feedback
+    if (navigator.vibrate) {
+        navigator.vibrate(30);
+    }
+}
+
+function ensureHologramGroup() {
+    if (!scene) return;
+    if (!hologramGroup) {
+        hologramGroup = new THREE.Group();
+        hologramGroup.visible = false;
+        scene.add(hologramGroup);
+    }
+}
+
+function hideHologramGroup() {
+    if (!hologramGroup) return;
+    hologramGroup.visible = false;
+}
+
+function wrapText(ctx, text, maxWidth) {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+    words.forEach((word) => {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+        } else {
+            currentLine = testLine;
+        }
+    });
+    if (currentLine) {
+        lines.push(currentLine);
+    }
+    return lines;
+}
+
+function createNeonSprite(text, options = {}) {
+    const fontSize = options.fontSize || 42;
+    const padding = options.padding || 28;
+    const maxWidth = options.maxWidth || 640;
+    const color = options.color || '#00ffff';
+    const gradientStart = options.gradientStart || 'rgba(0, 255, 255, 0.15)';
+    const gradientEnd = options.gradientEnd || 'rgba(120, 0, 255, 0.15)';
+    const font = options.font || `600 ${fontSize}px 'Orbitron', 'Segoe UI', sans-serif`;
+    const lineHeight = options.lineHeight || Math.round(fontSize * 1.2);
+    const pixelRatio = window.devicePixelRatio || 1;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+    const lines = wrapText(ctx, text, maxWidth - padding * 2);
+    const width = maxWidth;
+    const height = lineHeight * lines.length + padding * 2;
+    canvas.width = width * pixelRatio;
+    canvas.height = height * pixelRatio;
+    ctx.scale(pixelRatio, pixelRatio);
+    ctx.font = font;
+    ctx.clearRect(0, 0, width, height);
+
+    const gradient = ctx.createLinearGradient(0, 0, width, 0);
+    gradient.addColorStop(0, gradientStart);
+    gradient.addColorStop(1, gradientEnd);
+    ctx.fillStyle = 'rgba(5, 10, 30, 0.65)';
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, width - 2, height - 2);
+
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'top';
+    lines.forEach((line, index) => {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.fillText(line, padding, padding + index * lineHeight);
+    });
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+
+    const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false
+    });
+    const sprite = new THREE.Sprite(material);
+    const scaleFactor = options.scale ?? 0.0011;
+    sprite.scale.set(width * scaleFactor, height * scaleFactor, 1);
+    return sprite;
+}
+
+function createHoloRing(inner = 0.28, outer = 0.33) {
+    const geometry = new THREE.RingGeometry(inner, outer, 64);
+    const material = new THREE.MeshBasicMaterial({
+        color: 0x00ffff,
+        transparent: true,
+        opacity: 0.4,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+    });
+    const ring = new THREE.Mesh(geometry, material);
+    ring.name = 'holoRing';
+    ring.rotation.x = -Math.PI / 2;
+    return ring;
+}
+
+function createBeam() {
+    const geometry = new THREE.CylinderGeometry(0.015, 0.03, 0.5, 16, 1, true);
+    const material = new THREE.MeshBasicMaterial({
+        color: 0x00ffff,
+        transparent: true,
+        opacity: 0.35,
+        blending: THREE.AdditiveBlending
+    });
+    const beam = new THREE.Mesh(geometry, material);
+    beam.rotation.z = Math.PI / 2;
+    beam.position.y = 0.12;
+    return beam;
+}
+
+function updateHologramContent(dish) {
+    if (!model || !scene) return;
+    ensureHologramGroup();
+    hologramGroup.visible = true;
+    if (hologramGroup.children.length) {
+        hologramGroup.children.forEach((child) => {
+            if (child.material && child.material.map) {
+                child.material.map.dispose();
+            }
+            if (child.material && child.material.dispose) {
+                child.material.dispose();
+            }
+            if (child.geometry && child.geometry.dispose) {
+                child.geometry.dispose();
+            }
+        });
+        hologramGroup.clear();
+    }
+    hologramState.sprites = [];
+    hologramState.ring = null;
+    hologramState.beam = null;
+
+    const ring = createHoloRing();
+    hologramGroup.add(ring);
+    hologramState.ring = ring;
+
+    const beam = createBeam();
+    hologramGroup.add(beam);
+    hologramState.beam = beam;
+
+    const modelHeight = getModelHeight();
+    const nameHeight = modelHeight + Math.min(0.08, modelHeight * 0.18);
+    const cardHeight = modelHeight * 0.35 + 0.04;
+    const cardRadius = Math.min(0.22, 0.14 + modelHeight * 0.08);
+    const depthOffset = 0.025;
+
+    const nameSprite = createNeonSprite(dish.name, {
+        fontSize: 34,
+        lineHeight: 40,
+        maxWidth: 360,
+        color: '#00ffff',
+        padding: 18,
+        scale: 0.0012
+    });
+    nameSprite.position.set(0, nameHeight, depthOffset);
+    hologramGroup.add(nameSprite);
+    hologramState.sprites.push(nameSprite);
+
+    const detailSpriteOptions = {
+        fontSize: 22,
+        lineHeight: 28,
+        maxWidth: 260,
+        padding: 12,
+        scale: 0.00085
+    };
+
+    const ingredientsSprite = createNeonSprite(`ING: ${dish.ingredients}`, {
+        ...detailSpriteOptions,
+        color: '#80ffea'
+    });
+    ingredientsSprite.position.set(-cardRadius, cardHeight, depthOffset * 0.5);
+    hologramGroup.add(ingredientsSprite);
+    hologramState.sprites.push(ingredientsSprite);
+
+    const nutrientsSprite = createNeonSprite(`NUTR: ${dish.nutrients}`, {
+        ...detailSpriteOptions,
+        color: '#9d86ff'
+    });
+    nutrientsSprite.position.set(cardRadius, cardHeight, -depthOffset * 0.5);
+    hologramGroup.add(nutrientsSprite);
+    hologramState.sprites.push(nutrientsSprite);
+
+    hologramPulse = 0;
+    updateHologramFollow(true);
+}
+
+function getModelHeight() {
+    if (!model) return 0.5;
+    tempBox.setFromObject(model);
+    const height = tempBox.max.y - tempBox.min.y;
+    return Math.max(height || 0.5, 0.25);
+}
+
+function updateHologramFollow(force = false) {
+    if (!hologramGroup || !model || !camera || !isModelPlaced) return;
+    const modelHeight = getModelHeight();
+    tempVector.copy(model.position);
+    tempVector.y += modelHeight + 0.2;
+    if (force) {
+        hologramGroup.position.copy(tempVector);
+    } else {
+        hologramGroup.position.lerp(tempVector, 0.25);
+    }
+    hologramGroup.lookAt(camera.position);
+    hologramPulse += 0.02;
+    if (hologramState.ring) {
+        const scale = 1 + Math.sin(hologramPulse) * 0.08;
+        hologramState.ring.scale.set(scale, scale, scale);
+        hologramState.ring.material.opacity = 0.25 + (Math.sin(hologramPulse * 2) + 1) * 0.15;
+    }
+    if (hologramState.beam) {
+        hologramState.beam.material.opacity = 0.25 + (Math.sin(hologramPulse * 3) + 1) * 0.1;
+    }
 }
 
 // Initialize the application
@@ -83,6 +432,7 @@ function setupEventListeners(modelFile) {
     document.getElementById('scaleUpBtn').addEventListener('click', () => scaleModel(1.2));
     document.getElementById('scaleDownBtn').addEventListener('click', () => scaleModel(0.8));
     document.getElementById('rotateBtn').addEventListener('click', toggleRotation);
+    document.getElementById('infoToggleBtn').addEventListener('click', toggleHoloInfoPanel);
 
     // Touch/Mouse interactions on canvas
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
@@ -123,23 +473,19 @@ async function tryStartWebXR(modelFile) {
     // Check if WebXR is available
     if (!navigator.xr) {
         alert('WebXR not available on this device. Please use a device with AR support (Android with ARCore).');
-        console.log('[AR] WebXR not available');
         return;
     }
 
     try {
         // Check for immersive-ar support
         const supported = await navigator.xr.isSessionSupported('immersive-ar');
-        console.log('[AR] WebXR immersive-ar supported:', supported);
         
         if (!supported) {
             alert('WebXR AR not supported on this device. Please use Chrome on Android with ARCore.');
-            console.log('[AR] WebXR AR not supported');
             return;
         }
 
         // Try to start WebXR
-        console.log('[AR] Starting WebXR mode');
         await startWebXRSession(modelFile);
     } catch (error) {
         console.error('[AR] WebXR failed:', error);
@@ -160,28 +506,22 @@ async function startWebXRSession(modelFile) {
             requiredFeatures: ['hit-test']
         });
 
-        console.log('[WebXR] Session created');
-
     // Initialize Three.js for WebXR
     await initThreeJSWebXR(modelFile);
 
     // Setup session - try the most compatible reference spaces
     const { space: refSpace, type: refType } = await resolveReferenceSpace(['local-floor', 'local', 'bounded-floor']);
     xrRefSpace = refSpace;
-    console.log(`[WebXR] Using reference space: ${refType}`);
     renderer.xr.setReferenceSpaceType(refType);
     await renderer.xr.setSession(xrSession);
 
     // Request hit test source using viewer or local space
     const { space: hitSpace, type: hitType } = await resolveReferenceSpace(['viewer', 'local']);
     hitTestSource = await xrSession.requestHitTestSource({ space: hitSpace });
-    console.log(`[WebXR] Hit test source ready using space: ${hitType}`);
-
-        console.log('[WebXR] Hit test source ready');
+    
 
         // Handle session end
         xrSession.addEventListener('end', () => {
-            console.log('[WebXR] Session ended');
             xrSession = null;
             hitTestSource = null;
             window.location.href = '../index.html';
@@ -197,8 +537,6 @@ async function startWebXRSession(modelFile) {
 
         // Start render loop
         renderer.setAnimationLoop(renderWebXR);
-
-        console.log('[WebXR] AR session started successfully');
 
     } catch (error) {
         console.error('[WebXR] Session error:', error);
@@ -258,8 +596,6 @@ async function initThreeJSWebXR(modelFile) {
 
     // Load model
     await loadModel(modelFile);
-
-    console.log('[WebXR] Three.js initialized');
 }
 
 // WebXR render loop
@@ -283,7 +619,6 @@ function renderWebXR(timestamp, frame) {
                 reticle.matrix.fromArray(hitPose.transform.matrix);
 
                 if (consecutiveHitFrames === 0) {
-                    console.log('[WebXR] Surface detected, stabilizing hit test.');
                     updatePositionText('Surface detected. Hold steady for placement.');
                 }
 
@@ -308,14 +643,13 @@ function renderWebXR(timestamp, frame) {
         model.rotation.y += 0.01;
     }
 
+    updateHologramFollow();
     renderer.render(scene, camera);
 }
 
 // Place model at detected surface
 function placeModelWebXR(hitPose) {
     if (!model || isModelPlaced) return;
-
-    console.log('[WebXR] Placing model at detected surface');
 
     const position = new THREE.Vector3();
     const rotation = new THREE.Quaternion();
@@ -337,7 +671,11 @@ function placeModelWebXR(hitPose) {
         navigator.vibrate([50, 100, 50]);
     }
 
-    console.log('[WebXR] Model placed and anchored');
+    // Show info panel after a short delay for better UX
+    setTimeout(() => {
+        const modelFile = getModelFromURL();
+        showHoloInfoPanel(modelFile);
+    }, 800);
 }
 
 // Start AR Experience with camera feed
@@ -355,10 +693,6 @@ async function startARExperience(modelFile) {
         const isSecureContext = window.isSecureContext;
         const protocol = window.location.protocol;
         
-        console.log('[AR] Protocol:', protocol);
-        console.log('[AR] Secure Context:', isSecureContext);
-        console.log('[AR] navigator.mediaDevices available:', !!navigator.mediaDevices);
-        
         // Check for HTTPS or localhost requirement
         if (!isSecureContext && protocol !== 'https:' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
             throw new Error('AR requires HTTPS or localhost. Please run a local server (e.g., python3 -m http.server 8000) and access via http://localhost:8000');
@@ -370,7 +704,6 @@ async function startARExperience(modelFile) {
         }
 
         // Request camera access
-        console.log('[AR] Requesting camera access...');
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
                 facingMode: 'environment', // Use rear camera
@@ -379,7 +712,6 @@ async function startARExperience(modelFile) {
             } 
         });
         
-        console.log('[AR] Camera access granted');
         video.srcObject = stream;
         video.style.display = 'block';
         
@@ -392,7 +724,6 @@ async function startARExperience(modelFile) {
         });
         
         // Initialize Three.js scene
-        console.log('[AR] Initializing Three.js and loading model...');
         await initThreeJS(modelFile, video);
         
         // Show canvas and controls
@@ -403,8 +734,6 @@ async function startARExperience(modelFile) {
         loadingIndicator.classList.add('hidden');
         
         isArActive = true;
-        
-        console.log('[AR] AR Experience started successfully');
         
         // Start rendering
         animate();
@@ -532,16 +861,12 @@ function animateSurfaceIndicator() {
 // Load 3D model
 function loadModel(modelFile) {
     return new Promise((resolve, reject) => {
-        console.log('[AR] Loading model:', modelFile);
-        
         // Check which GLTFLoader is available
         let LoaderClass;
         if (typeof THREE.GLTFLoader !== 'undefined') {
             LoaderClass = THREE.GLTFLoader;
-            console.log('[AR] Using THREE.GLTFLoader');
         } else if (typeof GLTFLoader !== 'undefined') {
             LoaderClass = GLTFLoader;
-            console.log('[AR] Using global GLTFLoader');
         } else {
             const errorMsg = 'GLTFLoader not found! Please check your internet connection.';
             console.error('[AR]', errorMsg);
@@ -552,12 +877,10 @@ function loadModel(modelFile) {
         
         const loader = new LoaderClass();
         const modelPath = `dish_models/${modelFile}`;
-        console.log('[AR] Model path:', modelPath);
         
         loader.load(
             modelPath,
             (gltf) => {
-                console.log('[AR] Model loaded successfully:', modelFile);
                 model = gltf.scene;
                 
                 // Get model config for initial scale
@@ -583,7 +906,7 @@ function loadModel(modelFile) {
                 // Progress callback
                 if (xhr.lengthComputable) {
                     const percentComplete = (xhr.loaded / xhr.total) * 100;
-                    console.log('[AR] Loading progress:', percentComplete.toFixed(2) + '%');
+                    updatePositionText(`Loading model ${percentComplete.toFixed(0)}%`);
                 }
             },
             (error) => {
@@ -612,12 +935,12 @@ function animate() {
         model.rotation.y += 0.01;
     }
     
+    updateHologramFollow();
     renderer.render(scene, camera);
 }
 
 // Handle touch start
 function handleTouchStart(e) {
-    console.log('[AR] Touch start, touches:', e.touches.length);
     lastTouchTime = Date.now();
     
     if (e.touches.length === 1) {
@@ -651,7 +974,6 @@ function handleTouchMove(e) {
         
         if (distance > moveThreshold) {
             isDragging = true;
-            console.log('[AR] Drag detected');
         }
         
         if (model && isModelPlaced && isDragging) {
@@ -674,7 +996,6 @@ function handleTouchMove(e) {
         isTwoFingerGesture = true;
         
         if (model && isModelPlaced) {
-            console.log('[AR] Two-finger gesture detected');
             
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -710,7 +1031,6 @@ function handleTouchMove(e) {
 
 // Handle touch end
 function handleTouchEnd(e) {
-    console.log('[AR] Touch end, remaining touches:', e.touches.length);
     
     // Reset gesture tracking
     if (e.touches.length < 2) {
@@ -727,7 +1047,6 @@ function handleTouchEnd(e) {
     const wasTap = !isDragging && !isTwoFingerGesture && touchDuration < 300 && e.touches.length === 0;
     
     if (wasTap && !isModelPlaced) {
-        console.log('[AR] Tap detected for model placement');
         // Trigger placement via click event
         handleCanvasClick(e);
     }
@@ -747,19 +1066,15 @@ function handleCanvasClick(e) {
     
     // Check if this was preceded by dragging
     if (isDragging) {
-        console.log('[AR] Ignoring click due to drag');
         return;
     }
     
     // Check if model exists
     if (!model) {
-        console.log('[AR] Model not loaded yet');
         return;
     }
     
     if (!isModelPlaced) {
-        console.log('[AR] Placing model at surface indicator position');
-        
         // Place model at the surface indicator position
         model.position.copy(surfaceIndicator.position);
         model.position.y += 0.2; // Slightly above surface
@@ -770,10 +1085,6 @@ function handleCanvasClick(e) {
         
         isModelPlaced = true;
         updatePositionText('Model placed! Use gestures to interact');
-        
-        console.log('[AR] Model placed at position:', model.position);
-        console.log('[AR] Model scale:', model.scale);
-        console.log('[AR] Model visible:', model.visible);
         
         // Add entrance animation
         const startScale = modelScale * 0.1;
@@ -790,6 +1101,10 @@ function handleCanvasClick(e) {
             if (progress >= 1) {
                 model.scale.set(targetScale, targetScale, targetScale);
                 clearInterval(placeAnimation);
+                
+                // Show info panel after animation completes
+                const modelFile = getModelFromURL();
+                showHoloInfoPanel(modelFile);
             }
         }, 16);
         
@@ -798,7 +1113,6 @@ function handleCanvasClick(e) {
             navigator.vibrate(50);
         }
         
-        console.log('[AR] Model placed successfully');
     }
 }
 
@@ -844,6 +1158,9 @@ function resetModel() {
         model.visible = false;
         surfaceIndicator.visible = true;
         updatePositionText('Tap screen to place model');
+        
+        // Hide info panel when model is reset to not placed
+        hideHoloInfoPanel();
     }
 }
 
@@ -971,6 +1288,7 @@ function exitAR() {
     if (scene) {
         scene.clear();
     }
+    hologramGroup = null;
     
     // Go back to frontend menu
     window.location.href = '../index.html';
