@@ -27,15 +27,21 @@ let isMouseDown = false;
 let mouseStartX = 0;
 let mouseStartY = 0;
 
-// Model configurations
+// Model configurations with real-world sizes (in centimeters)
 const modelConfigs = {
-    'pizza.glb': { name: 'Pizza 🍕', scale: 0.5, dishId: 16 },
-    'samosa.glb': { name: 'Samosa 🥟', scale: 0.6, dishId: 15 },
-    'monster_energy_drink.glb': { name: 'Monster Energy Drink 🥤', scale: 0.6, dishId: 17 },
-    'chicken.glb': { name: 'Chicken Masala 🍗', scale: 0.6, dishId: 18 },
-    'egg_masala.glb': { name: 'Egg Masala Thali 🍳', scale: 0.5, dishId: 19 },
-    'paneer.glb': { name: 'Paneer Masala 🧀', scale: 0.6, dishId: 20 }
+    'pizza.glb': { name: 'Pizza 🍕', scale: 0.5, dishId: 16, realSizeCm: 30, minSizeCm: 15, maxSizeCm: 45 },
+    'samosa.glb': { name: 'Samosa 🥟', scale: 0.6, dishId: 15, realSizeCm: 12, minSizeCm: 8, maxSizeCm: 18 },
+    'monster_energy_drink.glb': { name: 'Monster Energy Drink 🥤', scale: 0.6, dishId: 17, realSizeCm: 16, minSizeCm: 10, maxSizeCm: 20 },
+    'chicken.glb': { name: 'Chicken Masala 🍗', scale: 0.6, dishId: 18, realSizeCm: 25, minSizeCm: 18, maxSizeCm: 35 },
+    'egg_masala.glb': { name: 'Egg Masala Thali 🍳', scale: 0.5, dishId: 19, realSizeCm: 28, minSizeCm: 20, maxSizeCm: 35 },
+    'paneer.glb': { name: 'Paneer Masala 🧀', scale: 0.6, dishId: 20, realSizeCm: 22, minSizeCm: 15, maxSizeCm: 30 }
 };
+
+// Realistic scaling variables
+let baseModelSize = 1; // Base size of model in scene units
+let currentRealSizeCm = 25; // Current displayed size in cm
+let realSizeConfig = null; // Current dish real size config
+let sizeSprite = null; // 3D sprite showing current size in AR
 
 // Dish details data (from ingredients_nutrients_filled.csv)
 const dishData = {
@@ -104,11 +110,30 @@ function showHoloInfoPanel(modelFile) {
     if (!dish) return;
     
     currentDishId = config.dishId;
+    realSizeConfig = config;
     
+    // In WebXR mode: only show 3D hologram (HTML won't be visible anyway)
+    if (useWebXR) {
+        updateHologramContent(dish);
+        isInfoPanelVisible = true;
+        
+        // Update toggle button style
+        const toggleBtn = document.getElementById('infoToggleBtn');
+        if (toggleBtn) {
+            toggleBtn.style.background = 'rgba(0, 255, 255, 0.3)';
+            toggleBtn.style.borderColor = 'rgba(0, 255, 255, 0.8)';
+        }
+        return;
+    }
+    
+    // In camera mode: show HTML panel only (no 3D hologram to avoid duplication)
     // Update panel content
     document.getElementById('holoDishName').textContent = dish.name;
     document.getElementById('holoIngredients').textContent = dish.ingredients;
     document.getElementById('holoNutrients').textContent = dish.nutrients;
+    
+    // Update size indicator
+    updateSizeIndicator();
     
     // Show panel with animation
     const panel = document.getElementById('holoInfoPanel');
@@ -127,17 +152,21 @@ function showHoloInfoPanel(modelFile) {
         toggleBtn.style.borderColor = 'rgba(0, 255, 255, 0.8)';
     }
     
-    updateHologramContent(dish);
+    // Hide 3D hologram in camera mode (HTML panel is enough)
+    hideHologramGroup();
 }
 
 // Hide the holographic info panel
 function hideHoloInfoPanel() {
     const panel = document.getElementById('holoInfoPanel');
-    panel.classList.remove('visible');
     
-    setTimeout(() => {
-        panel.classList.add('hidden');
-    }, 500);
+    // Hide HTML panel (camera mode)
+    if (panel) {
+        panel.classList.remove('visible');
+        setTimeout(() => {
+            panel.classList.add('hidden');
+        }, 500);
+    }
     
     isInfoPanelVisible = false;
     
@@ -148,7 +177,51 @@ function hideHoloInfoPanel() {
         toggleBtn.style.borderColor = 'transparent';
     }
     
+    // Hide 3D hologram
     hideHologramGroup();
+    
+    // Hide 3D size sprite
+    if (sizeSprite && scene) {
+        scene.remove(sizeSprite);
+        if (sizeSprite.material && sizeSprite.material.map) sizeSprite.material.map.dispose();
+        if (sizeSprite.material) sizeSprite.material.dispose();
+        sizeSprite = null;
+    }
+}
+
+// Update the size indicator display - DISABLED (no size labels)
+function updateSizeIndicator() {
+    // Size indicator removed - function kept as no-op to prevent errors
+    return;
+}
+
+// Update 3D size sprite - DISABLED (no size labels)
+function update3DSizeSprite() {
+    // Size sprite removed - function kept as no-op
+    return;
+}
+
+// Update size sprite position in render loop - DISABLED
+function updateSizeSpritePosition() {
+    // Size sprite removed - function kept as no-op
+    return;
+}
+
+// Reset to real plate size
+function resetToRealSize() {
+    if (!model || !realSizeConfig) return;
+    
+    modelScale = realSizeConfig.scale;
+    model.scale.set(modelScale, modelScale, modelScale);
+    currentRealSizeCm = realSizeConfig.realSizeCm;
+    
+    updateSizeIndicator();
+    updatePositionText(`📏 Reset to real size: ${realSizeConfig.realSizeCm} cm`);
+    
+    // Haptic feedback
+    if (navigator.vibrate) {
+        navigator.vibrate([50, 30, 50]);
+    }
 }
 
 // Toggle info panel visibility
@@ -211,6 +284,7 @@ function createNeonSprite(text, options = {}) {
     const gradientEnd = options.gradientEnd || 'rgba(120, 0, 255, 0.15)';
     const font = options.font || `600 ${fontSize}px 'Orbitron', 'Segoe UI', sans-serif`;
     const lineHeight = options.lineHeight || Math.round(fontSize * 1.2);
+    const borderRadius = options.borderRadius || 8;
     const pixelRatio = window.devicePixelRatio || 1;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -224,23 +298,33 @@ function createNeonSprite(text, options = {}) {
     ctx.font = font;
     ctx.clearRect(0, 0, width, height);
 
+    // Draw rounded rectangle background with soft blur effect
+    ctx.beginPath();
+    ctx.roundRect(0, 0, width, height, borderRadius);
+    ctx.closePath();
+    
+    // Darker, more opaque background for better readability
+    ctx.fillStyle = 'rgba(5, 10, 25, 0.85)';
+    ctx.fill();
+    
+    // Gradient overlay
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
     gradient.addColorStop(0, gradientStart);
     gradient.addColorStop(1, gradientEnd);
-    ctx.fillStyle = 'rgba(5, 10, 30, 0.65)';
-    ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fill();
 
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.35)';
+    // Rounded border with glow
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
     ctx.lineWidth = 2;
-    ctx.strokeRect(1, 1, width - 2, height - 2);
+    ctx.stroke();
 
+    // Text with glow effect
     ctx.fillStyle = color;
     ctx.textBaseline = 'top';
     lines.forEach((line, index) => {
         ctx.shadowColor = color;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 12;
         ctx.fillText(line, padding, padding + index * lineHeight);
     });
 
@@ -321,50 +405,61 @@ function updateHologramContent(dish) {
     hologramState.beam = beam;
 
     const modelHeight = getModelHeight();
-    const nameHeight = modelHeight + Math.min(0.08, modelHeight * 0.18);
-    const cardHeight = modelHeight * 0.35 + 0.04;
-    const cardRadius = Math.min(0.22, 0.14 + modelHeight * 0.08);
-    const depthOffset = 0.025;
+    
+    // Position labels to the LEFT of the model, stacked vertically with proper spacing
+    // Each label gets enough space to not overlap
+    const leftOffset = -0.22; // Position to left side
+    const baseHeight = modelHeight * 0.3; // Start position
+    const verticalSpacing = 0.08; // Space between each label
 
-    const nameSprite = createNeonSprite(dish.name, {
-        fontSize: 34,
-        lineHeight: 40,
-        maxWidth: 360,
+    // Add dish name with size info - top label
+    const sizeInfo = realSizeConfig ? ` (${currentRealSizeCm}cm)` : '';
+    const nameSprite = createNeonSprite(dish.name + sizeInfo, {
+        fontSize: 26,
+        lineHeight: 32,
+        maxWidth: 260,
         color: '#00ffff',
-        padding: 18,
-        scale: 0.0012
+        padding: 12,
+        scale: 0.0008,
+        borderRadius: 10,
+        blurBackground: true
     });
-    nameSprite.position.set(0, nameHeight, depthOffset);
+    nameSprite.position.set(leftOffset, baseHeight, 0.1);
     hologramGroup.add(nameSprite);
     hologramState.sprites.push(nameSprite);
 
     const detailSpriteOptions = {
-        fontSize: 22,
-        lineHeight: 28,
-        maxWidth: 260,
-        padding: 12,
-        scale: 0.00085
+        fontSize: 16,
+        lineHeight: 20,
+        maxWidth: 220,
+        padding: 8,
+        scale: 0.00065,
+        borderRadius: 6,
+        blurBackground: true
     };
 
+    // Ingredients - below name with proper spacing
     const ingredientsSprite = createNeonSprite(`ING: ${dish.ingredients}`, {
         ...detailSpriteOptions,
         color: '#80ffea'
     });
-    ingredientsSprite.position.set(-cardRadius, cardHeight, depthOffset * 0.5);
+    ingredientsSprite.position.set(leftOffset, baseHeight - verticalSpacing, 0.1);
     hologramGroup.add(ingredientsSprite);
     hologramState.sprites.push(ingredientsSprite);
 
+    // Nutrients - below ingredients with proper spacing
     const nutrientsSprite = createNeonSprite(`NUTR: ${dish.nutrients}`, {
         ...detailSpriteOptions,
         color: '#9d86ff'
     });
-    nutrientsSprite.position.set(cardRadius, cardHeight, -depthOffset * 0.5);
+    nutrientsSprite.position.set(leftOffset, baseHeight - verticalSpacing * 2, 0.1);
     hologramGroup.add(nutrientsSprite);
     hologramState.sprites.push(nutrientsSprite);
 
     hologramPulse = 0;
     updateHologramFollow(true);
 }
+
 
 function getModelHeight() {
     if (!model) return 0.5;
@@ -377,7 +472,8 @@ function updateHologramFollow(force = false) {
     if (!hologramGroup || !model || !camera || !isModelPlaced) return;
     const modelHeight = getModelHeight();
     tempVector.copy(model.position);
-    tempVector.y += modelHeight + 0.2;
+    // Position hologram at model center height (labels positioned relative to this)
+    tempVector.y += modelHeight * 0.5;
     if (force) {
         hologramGroup.position.copy(tempVector);
     } else {
@@ -432,13 +528,18 @@ function setupEventListeners(modelFile) {
     document.getElementById('scaleUpBtn').addEventListener('click', () => scaleModel(1.2));
     document.getElementById('scaleDownBtn').addEventListener('click', () => scaleModel(0.8));
     document.getElementById('rotateBtn').addEventListener('click', toggleRotation);
-    document.getElementById('infoToggleBtn').addEventListener('click', toggleHoloInfoPanel);
+    // Info button removed - reset button handles info display
 
-    // Touch/Mouse interactions on canvas
+    // Touch/Mouse interactions on canvas (works in both modes)
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
     canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+    
+    // Also add touch listeners to body for WebXR DOM overlay mode
+    document.body.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.body.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.body.addEventListener('touchend', handleTouchEnd, { passive: false });
     
     // Click event for desktop and as fallback for mobile
     canvas.addEventListener('click', handleCanvasClick);
@@ -461,9 +562,12 @@ function showStartButton(modelFile) {
     
     loadingIndicator.classList.add('hidden');
     startArButton.classList.remove('hidden');
+    startArButton.style.display = ''; // Reset display
     
     startArBtn.addEventListener('click', () => {
+        // Completely hide the start button
         startArButton.classList.add('hidden');
+        startArButton.style.display = 'none';
         tryStartWebXR(modelFile);
     });
 }
@@ -496,15 +600,34 @@ async function tryStartWebXR(modelFile) {
 // Start WebXR AR session
 async function startWebXRSession(modelFile) {
     const loadingIndicator = document.getElementById('loadingIndicator');
+    const startArButton = document.getElementById('startArButton');
     const canvas = document.getElementById('arCanvas');
+    const arControls = document.getElementById('arControls');
 
     try {
         loadingIndicator.classList.remove('hidden');
+        
+        // Make sure start button is completely hidden
+        if (startArButton) {
+            startArButton.classList.add('hidden');
+            startArButton.style.display = 'none';
+        }
 
-        // Request AR session with minimal requirements (like Amazon/Flipkart)
-        xrSession = await navigator.xr.requestSession('immersive-ar', {
-            requiredFeatures: ['hit-test']
-        });
+        // Get DOM overlay root element for showing UI in WebXR
+        const domOverlayRoot = document.body;
+
+        // Request AR session with DOM overlay for UI visibility
+        const sessionOptions = {
+            requiredFeatures: ['hit-test'],
+            optionalFeatures: ['dom-overlay'],
+            domOverlay: { root: domOverlayRoot }
+        };
+
+        xrSession = await navigator.xr.requestSession('immersive-ar', sessionOptions);
+
+        // Check if DOM overlay is supported
+        const hasDomOverlay = xrSession.domOverlayState !== undefined;
+        console.log('[WebXR] DOM Overlay supported:', hasDomOverlay);
 
     // Initialize Three.js for WebXR
     await initThreeJSWebXR(modelFile);
@@ -527,9 +650,26 @@ async function startWebXRSession(modelFile) {
             window.location.href = '../index.html';
         });
 
+        // Setup WebXR input sources for pinch gestures
+        xrSession.addEventListener('selectstart', handleXRSelectStart);
+        xrSession.addEventListener('selectend', handleXRSelectEnd);
+
+        // Hide elements that shouldn't show in WebXR
+        const holoInfoPanel = document.getElementById('holoInfoPanel');
+        if (holoInfoPanel) {
+            holoInfoPanel.classList.add('hidden');
+            holoInfoPanel.classList.remove('visible');
+        }
+        
+        const sizeIndicator = document.getElementById('sizeIndicator');
+        if (sizeIndicator) {
+            sizeIndicator.classList.add('hidden');
+            sizeIndicator.classList.remove('visible');
+        }
+
         // Show canvas and controls
         canvas.style.display = 'block';
-        document.getElementById('arControls').classList.remove('hidden');
+        arControls.classList.remove('hidden');
         loadingIndicator.classList.add('hidden');
 
         useWebXR = true;
@@ -541,7 +681,56 @@ async function startWebXRSession(modelFile) {
     } catch (error) {
         console.error('[WebXR] Session error:', error);
         loadingIndicator.classList.add('hidden');
+        
+        // Show start button again on error
+        if (startArButton) {
+            startArButton.classList.remove('hidden');
+            startArButton.style.display = '';
+        }
+        
         alert('Failed to start WebXR session: ' + error.message);
+    }
+}
+
+// WebXR select handlers for scaling
+let xrSelectStartTime = 0;
+
+function handleXRSelectStart(event) {
+    xrSelectStartTime = Date.now();
+    
+    // If model not placed yet, place it on select
+    if (!isModelPlaced && model && reticle && reticle.visible) {
+        // Get reticle position
+        const position = new THREE.Vector3();
+        reticle.matrix.decompose(position, new THREE.Quaternion(), new THREE.Vector3());
+        
+        model.position.copy(position);
+        model.visible = true;
+        reticle.visible = false;
+        isModelPlaced = true;
+        
+        // Initialize real size config
+        const modelFile = getModelFromURL();
+        realSizeConfig = modelConfigs[modelFile] || null;
+        
+        if (navigator.vibrate) {
+            navigator.vibrate([50, 100, 50]);
+        }
+        
+        // Show size indicator after placement
+        setTimeout(() => {
+            showHoloInfoPanel(modelFile);
+            updateSizeIndicator();
+        }, 500);
+    }
+}
+
+function handleXRSelectEnd(event) {
+    const selectDuration = Date.now() - xrSelectStartTime;
+    
+    // Quick tap while model is placed - toggle info
+    if (isModelPlaced && selectDuration < 300) {
+        toggleHoloInfoPanel();
     }
 }
 
@@ -644,6 +833,7 @@ function renderWebXR(timestamp, frame) {
     }
 
     updateHologramFollow();
+    updateSizeSpritePosition();
     renderer.render(scene, camera);
 }
 
@@ -665,16 +855,21 @@ function placeModelWebXR(hitPose) {
     reticle.visible = false;
     isModelPlaced = true;
 
-    updatePositionText('Model anchored in AR space!');
+    // Get real size config
+    const modelFile = getModelFromURL();
+    const config = modelConfigs[modelFile];
+    realSizeConfig = config || null;
+
+    updatePositionText(`✓ Placed! Pinch to resize (${config?.realSizeCm || 25} cm)`);
 
     if (navigator.vibrate) {
         navigator.vibrate([50, 100, 50]);
     }
 
-    // Show info panel after a short delay for better UX
+    // Show info panel and size indicator after a short delay for better UX
     setTimeout(() => {
-        const modelFile = getModelFromURL();
         showHoloInfoPanel(modelFile);
+        updateSizeIndicator();
     }, 800);
 }
 
@@ -883,9 +1078,13 @@ function loadModel(modelFile) {
             (gltf) => {
                 model = gltf.scene;
                 
-                // Get model config for initial scale
+                // Get model config for initial scale and real size
                 const config = modelConfigs[modelFile];
                 const initialScale = config ? config.scale : 0.5;
+                
+                // Initialize real size config
+                realSizeConfig = config || null;
+                currentRealSizeCm = config ? config.realSizeCm : 25;
                 
                 model.scale.set(initialScale, initialScale, initialScale);
                 
@@ -893,6 +1092,10 @@ function loadModel(modelFile) {
                 const box = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
                 model.position.set(-center.x, -center.y, -center.z);
+                
+                // Store base model size for reference
+                const size = box.getSize(new THREE.Vector3());
+                baseModelSize = Math.max(size.x, size.y, size.z);
                 
                 // Initially hide the model
                 model.visible = false;
@@ -941,6 +1144,11 @@ function animate() {
 
 // Handle touch start
 function handleTouchStart(e) {
+    // Skip if touching control buttons
+    if (e.target.closest('.control-panel') || e.target.closest('.exit-ar-btn') || e.target.closest('.size-indicator')) {
+        return;
+    }
+    
     lastTouchTime = Date.now();
     
     if (e.touches.length === 1) {
@@ -960,14 +1168,23 @@ function handleTouchStart(e) {
         // Calculate initial rotation angle
         initialRotationAngle = Math.atan2(dy, dx);
     }
-    e.preventDefault();
+    
+    // Only prevent default on canvas touches
+    if (e.target.tagName === 'CANVAS') {
+        e.preventDefault();
+    }
 }
 
 // Handle touch move
 function handleTouchMove(e) {
+    // Skip if touching control buttons
+    if (e.target.closest('.control-panel') || e.target.closest('.exit-ar-btn') || e.target.closest('.size-indicator')) {
+        return;
+    }
+    
     if (e.touches.length === 1 && !isTwoFingerGesture) {
-        // Single finger drag
-        const moveThreshold = 10;
+        // Single finger drag - hold and drag to reposition model
+        const moveThreshold = 5; // Lower threshold for more responsive dragging
         const deltaX = e.touches[0].clientX - touchStartX;
         const deltaY = e.touches[0].clientY - touchStartY;
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -977,13 +1194,17 @@ function handleTouchMove(e) {
         }
         
         if (model && isModelPlaced && isDragging) {
-            // Drag to move - improved sensitivity
-            const moveSensitivity = 0.005;
+            // Drag to move model - works in both camera and WebXR mode
+            // Higher sensitivity for easier repositioning
+            const moveSensitivity = useWebXR ? 0.002 : 0.008;
             const dx = (e.touches[0].clientX - touchStartX) * moveSensitivity;
-            const dy = -(e.touches[0].clientY - touchStartY) * moveSensitivity;
+            const dy = (e.touches[0].clientY - touchStartY) * moveSensitivity;
             
+            // Move on X and Z axes (horizontal plane)
+            // Drag left/right = move left/right (X axis)
+            // Drag up/down = move forward/backward (Z axis) - drag up moves closer
             model.position.x += dx;
-            model.position.y += dy;
+            model.position.z += dy; // Drag down = move away, drag up = move closer
             
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -991,7 +1212,7 @@ function handleTouchMove(e) {
             updatePositionText();
         }
     } else if (e.touches.length === 2) {
-        // Two-finger gesture
+        // Two-finger gesture (works in both WebXR and camera mode)
         isDragging = false;
         isTwoFingerGesture = true;
         
@@ -1002,16 +1223,31 @@ function handleTouchMove(e) {
             const distance = Math.sqrt(dx * dx + dy * dy);
             const angle = Math.atan2(dy, dx);
             
-            // Pinch to scale
+            // Pinch to scale - no limits for full flexibility
             if (initialPinchDistance > 0) {
                 const scaleFactor = distance / initialPinchDistance;
                 const newScale = modelScale * scaleFactor;
                 
-                // Limit scale range
-                if (newScale > 0.05 && newScale < 5.0) {
+                // Very wide limits for flexibility (essentially unlimited)
+                const minScale = 0.01;
+                const maxScale = 20.0;
+                
+                // Apply scale within wide limits
+                if (newScale >= minScale && newScale <= maxScale) {
                     modelScale = newScale;
                     model.scale.set(modelScale, modelScale, modelScale);
-                    updatePositionText(`Scale: ${(modelScale * 100).toFixed(0)}%`);
+                    
+                    // Update size indicator with real size
+                    updateSizeIndicator();
+                    
+                    // Show size feedback
+                    if (realSizeConfig) {
+                        const scaleRatio = modelScale / realSizeConfig.scale;
+                        const displaySize = Math.round(realSizeConfig.realSizeCm * scaleRatio);
+                        updatePositionText(`📏 Size: ${displaySize} cm`);
+                    } else {
+                        updatePositionText(`Scale: ${(modelScale * 100).toFixed(0)}%`);
+                    }
                 }
             }
             
@@ -1026,11 +1262,18 @@ function handleTouchMove(e) {
         }
     }
     
-    e.preventDefault();
+    // Prevent default on multi-touch gestures
+    if (e.touches.length >= 2) {
+        e.preventDefault();
+    }
 }
 
 // Handle touch end
 function handleTouchEnd(e) {
+    // Skip if touching control buttons
+    if (e.target && e.target.closest && (e.target.closest('.control-panel') || e.target.closest('.exit-ar-btn'))) {
+        return;
+    }
     
     // Reset gesture tracking
     if (e.touches.length < 2) {
@@ -1046,8 +1289,8 @@ function handleTouchEnd(e) {
     const touchDuration = Date.now() - lastTouchTime;
     const wasTap = !isDragging && !isTwoFingerGesture && touchDuration < 300 && e.touches.length === 0;
     
-    if (wasTap && !isModelPlaced) {
-        // Trigger placement via click event
+    if (wasTap && !isModelPlaced && !useWebXR) {
+        // Trigger placement via click event (camera mode only)
         handleCanvasClick(e);
     }
     
@@ -1055,8 +1298,6 @@ function handleTouchEnd(e) {
     setTimeout(() => {
         isDragging = false;
     }, 100);
-    
-    e.preventDefault();
 }
 
 // Handle canvas click/tap to place model
@@ -1084,7 +1325,13 @@ function handleCanvasClick(e) {
         surfaceIndicator.visible = false;
         
         isModelPlaced = true;
-        updatePositionText('Model placed! Use gestures to interact');
+        
+        // Get real size for display
+        const modelFile = getModelFromURL();
+        const config = modelConfigs[modelFile];
+        realSizeConfig = config || null;
+        
+        updatePositionText(`Model placed! Real size: ${config?.realSizeCm || 25} cm`);
         
         // Add entrance animation
         const startScale = modelScale * 0.1;
@@ -1102,9 +1349,9 @@ function handleCanvasClick(e) {
                 model.scale.set(targetScale, targetScale, targetScale);
                 clearInterval(placeAnimation);
                 
-                // Show info panel after animation completes
-                const modelFile = getModelFromURL();
+                // Show info panel and size indicator after animation completes
                 showHoloInfoPanel(modelFile);
+                updateSizeIndicator();
             }
         }, 16);
         
@@ -1116,17 +1363,32 @@ function handleCanvasClick(e) {
     }
 }
 
-// Scale model
+// Scale model - no limits for full flexibility
 function scaleModel(factor) {
     if (!model || !isModelPlaced) return;
     
-    modelScale *= factor;
+    const newScale = modelScale * factor;
     
-    // Clamp scale
-    modelScale = Math.max(0.05, Math.min(5.0, modelScale));
+    // Very wide limits for flexibility (essentially unlimited)
+    const minScale = 0.01;
+    const maxScale = 20.0;
+    
+    // Clamp scale within wide limits
+    modelScale = Math.max(minScale, Math.min(maxScale, newScale));
     
     model.scale.set(modelScale, modelScale, modelScale);
-    updatePositionText(`Scale: ${(modelScale * 100).toFixed(0)}%`);
+    
+    // Update size indicator
+    updateSizeIndicator();
+    
+    // Show size feedback
+    if (realSizeConfig) {
+        const scaleRatio = modelScale / realSizeConfig.scale;
+        const displaySize = Math.round(realSizeConfig.realSizeCm * scaleRatio);
+        updatePositionText(`📏 Size: ${displaySize} cm`);
+    } else {
+        updatePositionText(`Scale: ${(modelScale * 100).toFixed(0)}%`);
+    }
     
     // Haptic feedback
     if (navigator.vibrate) {
@@ -1138,17 +1400,21 @@ function scaleModel(factor) {
 function resetModel() {
     if (!model) return;
     
-    const config = modelConfigs[getModelFromURL()];
+    const modelFile = getModelFromURL();
+    const config = modelConfigs[modelFile];
     const initialScale = config ? config.scale : 0.5;
     
     modelScale = initialScale;
+    realSizeConfig = config || null;
+    
     model.scale.set(modelScale, modelScale, modelScale);
     model.position.copy(surfaceIndicator.position);
     model.position.y += 0.2;
     model.rotation.set(0, 0, 0);
     
     if (isModelPlaced) {
-        updatePositionText('Position reset');
+        updateSizeIndicator();
+        updatePositionText(`📏 Reset to real size: ${config?.realSizeCm || 25} cm`);
         
         // Haptic feedback
         if (navigator.vibrate) {
@@ -1159,8 +1425,13 @@ function resetModel() {
         surfaceIndicator.visible = true;
         updatePositionText('Tap screen to place model');
         
-        // Hide info panel when model is reset to not placed
+        // Hide info panel and size indicator when model is reset to not placed
         hideHoloInfoPanel();
+        const sizeIndicator = document.getElementById('sizeIndicator');
+        if (sizeIndicator) {
+            sizeIndicator.classList.add('hidden');
+            sizeIndicator.classList.remove('visible');
+        }
     }
 }
 
@@ -1181,19 +1452,12 @@ function toggleRotation() {
     }
 }
 
-// Update position text
+// Update position text - removed UI element, function kept for compatibility
 function updatePositionText(text) {
-    const positionText = document.getElementById('positionText');
+    // Position text UI removed - this function is now a no-op
+    // Kept for compatibility with existing code that calls it
     if (text) {
-        positionText.textContent = text;
-        // Auto-clear after 3 seconds
-        setTimeout(() => {
-            if (isModelPlaced && model) {
-                positionText.textContent = `X: ${model.position.x.toFixed(2)} Y: ${model.position.y.toFixed(2)}`;
-            }
-        }, 3000);
-    } else if (model) {
-        positionText.textContent = `X: ${model.position.x.toFixed(2)} Y: ${model.position.y.toFixed(2)}`;
+        console.log('[AR]', text);
     }
 }
 
@@ -1247,10 +1511,30 @@ function handleMouseWheel(e) {
     const scaleFactor = e.deltaY > 0 ? 0.95 : 1.05;
     const newScale = modelScale * scaleFactor;
     
-    if (newScale > 0.05 && newScale < 5.0) {
+    // Calculate limits based on real dish config
+    let minScale = 0.05;
+    let maxScale = 5.0;
+    
+    if (realSizeConfig) {
+        minScale = realSizeConfig.scale * (realSizeConfig.minSizeCm / realSizeConfig.realSizeCm);
+        maxScale = realSizeConfig.scale * (realSizeConfig.maxSizeCm / realSizeConfig.realSizeCm);
+    }
+    
+    if (newScale >= minScale && newScale <= maxScale) {
         modelScale = newScale;
         model.scale.set(modelScale, modelScale, modelScale);
-        updatePositionText(`Scale: ${(modelScale * 100).toFixed(0)}%`);
+        
+        // Update size indicator
+        updateSizeIndicator();
+        
+        // Show size feedback
+        if (realSizeConfig) {
+            const scaleRatio = modelScale / realSizeConfig.scale;
+            const displaySize = Math.round(realSizeConfig.realSizeCm * scaleRatio);
+            updatePositionText(`📏 Size: ${displaySize} cm`);
+        } else {
+            updatePositionText(`Scale: ${(modelScale * 100).toFixed(0)}%`);
+        }
     }
 }
 
@@ -1289,6 +1573,7 @@ function exitAR() {
         scene.clear();
     }
     hologramGroup = null;
+    sizeSprite = null;
     
     // Go back to frontend menu
     window.location.href = '../index.html';

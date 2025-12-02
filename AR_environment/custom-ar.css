@@ -59,6 +59,12 @@ body {
     text-align: center;
 }
 
+.start-ar-button.hidden {
+    display: none !important;
+    visibility: hidden;
+    pointer-events: none;
+}
+
 .ar-start-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -104,6 +110,14 @@ body {
     gap: 10px;
 }
 
+/* Exit button - styled red within control panel */
+.exit-btn {
+    background: rgba(255, 59, 48, 0.9) !important;
+    color: white !important;
+    font-size: 1.2rem !important;
+    font-weight: bold;
+}
+
 .control-icon-btn {
     width: 50px;
     height: 50px;
@@ -130,57 +144,6 @@ body {
     transform: scale(0.95);
 }
 
-.position-controls {
-    position: absolute;
-    bottom: max(100px, calc(100px + env(safe-area-inset-bottom, 0px)));
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    width: 90%;
-    max-width: 500px;
-}
-
-.position-info {
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 15px 30px;
-    border-radius: 25px;
-    margin-bottom: 15px;
-    font-size: 1rem;
-    font-weight: 500;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    user-select: none;
-}
-
-.exit-ar-btn {
-    position: absolute;
-    bottom: max(30px, calc(20px + env(safe-area-inset-bottom, 0px)));
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 59, 48, 0.95);
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 25px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-}
-
-.exit-ar-btn:hover {
-    transform: translateX(-50%) translateY(-2px);
-}
-
-.exit-ar-btn:active {
-    transform: translateX(-50%) translateY(0);
-}
-
 /* Loading Indicator */
 .loading-indicator {
     position: absolute;
@@ -197,7 +160,8 @@ body {
 }
 
 .loading-indicator.hidden {
-    display: none;
+    display: none !important;
+    visibility: hidden;
 }
 
 .spinner {
@@ -271,18 +235,6 @@ body {
         font-size: 1.4rem;
     }
 
-    .position-controls {
-        bottom: max(120px, calc(120px + env(safe-area-inset-bottom, 0px)));
-        width: 90%;
-        max-width: 400px;
-    }
-
-    .position-info {
-        padding: 12px 20px;
-        font-size: 0.9rem;
-        margin-bottom: 12px;
-    }
-
     .gesture-hints {
         gap: 8px;
         flex-wrap: wrap;
@@ -293,14 +245,6 @@ body {
         padding: 8px 12px;
         font-size: 0.75rem;
         flex: 0 1 auto;
-    }
-
-    .exit-ar-btn {
-        bottom: max(20px, calc(15px + env(safe-area-inset-bottom, 0px)));
-        padding: 12px 30px;
-        font-size: 0.95rem;
-        width: auto;
-        min-width: 150px;
     }
 
     .loading-indicator {
@@ -332,15 +276,6 @@ body {
         height: 45px;
         font-size: 1.2rem;
     }
-
-    .position-info {
-        font-size: 0.85rem;
-        padding: 10px 15px;
-    }
-    
-    .position-controls {
-        width: 95%;
-    }
 }
 
 /* Orientation Lock Message */
@@ -357,7 +292,6 @@ body {
 /* Active/Pressed states for touch */
 .control-icon-btn:active,
 .start-ar-btn:active,
-.exit-ar-btn:active,
 .back-button:active {
     transform: scale(0.95);
     opacity: 0.8;
@@ -396,7 +330,9 @@ body {
 }
 
 .holo-info-panel.hidden {
-    display: none;
+    display: none !important;
+    visibility: hidden;
+    opacity: 0;
 }
 
 .holo-container {
@@ -676,3 +612,5 @@ body {
         transform: translateY(-50%);
     }
 }
+
+/* Size indicator styles removed - no longer used */
