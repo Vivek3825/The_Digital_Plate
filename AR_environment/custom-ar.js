@@ -5,6 +5,13 @@ let isModelPlaced = false;
 let autoRotate = true;
 let surfaceIndicator;
 
+// WebXR variables
+let xrSession = null;
+let xrRefSpace = null;
+let hitTestSource = null;
+let reticle = null;
+let useWebXR = false;
+
 // Touch interaction variables
 let touchStartX = 0;
 let touchStartY = 0;
@@ -22,10 +29,13 @@ let mouseStartY = 0;
 
 // Model configurations
 const modelConfigs = {
-    'pizza.glb': { name: 'Pizza 🍕', scale: 0.5 },
-    'samosa.glb': { name: 'Samosa 🥟', scale: 0.3 },
-    'monster_energy_drink.glb': { name: 'Monster Energy Drink 🥤', scale: 0.4 }
+    'pizza.glb': { name: 'Pizza 🍕', scale: 1.0 },
+    'samosa.glb': { name: 'Samosa 🥟', scale: 0.8 },
+    'monster_energy_drink.glb': { name: 'Monster Energy Drink 🥤', scale: 1.0 }
 };
+
+const HIT_STABILITY_THRESHOLD = 3;
+let consecutiveHitFrames = 0;
 
 // Get model from URL parameter
 function getModelFromURL() {
@@ -52,8 +62,8 @@ function init() {
     // Setup event listeners
     setupEventListeners(modelFile);
     
-    // Automatically start AR experience
-    startARExperience(modelFile);
+    // Show start button and wait for user interaction
+    showStartButton(modelFile);
 }
 
 function setupEventListeners(modelFile) {
@@ -88,6 +98,243 @@ function setupEventListeners(modelFile) {
     
     // Prevent default context menu on long press
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+// Show start button (WebXR requires user activation)
+function showStartButton(modelFile) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const startArButton = document.getElementById('startArButton');
+    const startArBtn = document.getElementById('startArBtn');
+    
+    loadingIndicator.classList.add('hidden');
+    startArButton.classList.remove('hidden');
+    
+    startArBtn.addEventListener('click', () => {
+        startArButton.classList.add('hidden');
+        tryStartWebXR(modelFile);
+    });
+}
+
+// Try to start WebXR, fall back to camera mode if not supported
+async function tryStartWebXR(modelFile) {
+    // Check if WebXR is available
+    if (!navigator.xr) {
+        alert('WebXR not available on this device. Please use a device with AR support (Android with ARCore).');
+        console.log('[AR] WebXR not available');
+        return;
+    }
+
+    try {
+        // Check for immersive-ar support
+        const supported = await navigator.xr.isSessionSupported('immersive-ar');
+        console.log('[AR] WebXR immersive-ar supported:', supported);
+        
+        if (!supported) {
+            alert('WebXR AR not supported on this device. Please use Chrome on Android with ARCore.');
+            console.log('[AR] WebXR AR not supported');
+            return;
+        }
+
+        // Try to start WebXR
+        console.log('[AR] Starting WebXR mode');
+        await startWebXRSession(modelFile);
+    } catch (error) {
+        console.error('[AR] WebXR failed:', error);
+        alert('Failed to start AR: ' + error.message);
+    }
+}
+
+// Start WebXR AR session
+async function startWebXRSession(modelFile) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const canvas = document.getElementById('arCanvas');
+
+    try {
+        loadingIndicator.classList.remove('hidden');
+
+        // Request AR session with minimal requirements (like Amazon/Flipkart)
+        xrSession = await navigator.xr.requestSession('immersive-ar', {
+            requiredFeatures: ['hit-test']
+        });
+
+        console.log('[WebXR] Session created');
+
+    // Initialize Three.js for WebXR
+    await initThreeJSWebXR(modelFile);
+
+    // Setup session - try the most compatible reference spaces
+    const { space: refSpace, type: refType } = await resolveReferenceSpace(['local-floor', 'local', 'bounded-floor']);
+    xrRefSpace = refSpace;
+    console.log(`[WebXR] Using reference space: ${refType}`);
+    renderer.xr.setReferenceSpaceType(refType);
+    await renderer.xr.setSession(xrSession);
+
+    // Request hit test source using viewer or local space
+    const { space: hitSpace, type: hitType } = await resolveReferenceSpace(['viewer', 'local']);
+    hitTestSource = await xrSession.requestHitTestSource({ space: hitSpace });
+    console.log(`[WebXR] Hit test source ready using space: ${hitType}`);
+
+        console.log('[WebXR] Hit test source ready');
+
+        // Handle session end
+        xrSession.addEventListener('end', () => {
+            console.log('[WebXR] Session ended');
+            xrSession = null;
+            hitTestSource = null;
+            window.location.href = '../index.html';
+        });
+
+        // Show canvas and controls
+        canvas.style.display = 'block';
+        document.getElementById('arControls').classList.remove('hidden');
+        loadingIndicator.classList.add('hidden');
+
+        useWebXR = true;
+        isArActive = true;
+
+        // Start render loop
+        renderer.setAnimationLoop(renderWebXR);
+
+        console.log('[WebXR] AR session started successfully');
+
+    } catch (error) {
+        console.error('[WebXR] Session error:', error);
+        loadingIndicator.classList.add('hidden');
+        alert('Failed to start WebXR session: ' + error.message);
+    }
+}
+
+// Helper to request the first available reference space from a prioritized list
+async function resolveReferenceSpace(preferredTypes) {
+    for (const type of preferredTypes) {
+        try {
+            const space = await xrSession.requestReferenceSpace(type);
+            return { space, type };
+        } catch (err) {
+            console.warn(`[WebXR] Reference space ${type} not supported:`, err.message);
+        }
+    }
+    throw new Error('No compatible reference space found');
+}
+
+// Initialize Three.js for WebXR
+async function initThreeJSWebXR(modelFile) {
+    const canvas = document.getElementById('arCanvas');
+
+    // Create scene
+    scene = new THREE.Scene();
+
+    // Create camera
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+    // Create renderer with XR enabled
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true;
+
+    if (renderer.outputEncoding !== undefined) {
+        renderer.outputEncoding = THREE.sRGBEncoding;
+    }
+
+    // Add lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 10, 7.5);
+    scene.add(directionalLight);
+
+    // Create reticle for plane detection
+    const geometry = new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.7 });
+    reticle = new THREE.Mesh(geometry, material);
+    reticle.matrixAutoUpdate = false;
+    reticle.visible = false;
+    scene.add(reticle);
+
+    // Load model
+    await loadModel(modelFile);
+
+    console.log('[WebXR] Three.js initialized');
+}
+
+// WebXR render loop
+function renderWebXR(timestamp, frame) {
+    if (!frame || !xrSession) return;
+
+    const pose = frame.getViewerPose(xrRefSpace);
+    if (!pose) return;
+
+    // Hit test for plane detection
+    if (hitTestSource && !isModelPlaced) {
+        const hitTestResults = frame.getHitTestResults(hitTestSource);
+
+        if (hitTestResults.length > 0) {
+            const hit = hitTestResults[0];
+            const hitPose = hit.getPose(xrRefSpace);
+
+            if (hitPose) {
+                // Show reticle
+                reticle.visible = true;
+                reticle.matrix.fromArray(hitPose.transform.matrix);
+
+                if (consecutiveHitFrames === 0) {
+                    console.log('[WebXR] Surface detected, stabilizing hit test.');
+                    updatePositionText('Surface detected. Hold steady for placement.');
+                }
+
+                consecutiveHitFrames = Math.min(consecutiveHitFrames + 1, HIT_STABILITY_THRESHOLD);
+
+                if (consecutiveHitFrames >= HIT_STABILITY_THRESHOLD && model && model.visible === false) {
+                    placeModelWebXR(hitPose);
+                    consecutiveHitFrames = 0;
+                }
+            } else {
+                reticle.visible = false;
+                consecutiveHitFrames = 0;
+            }
+        } else {
+            reticle.visible = false;
+            consecutiveHitFrames = 0;
+        }
+    }
+
+    // Auto-rotate if enabled
+    if (model && isModelPlaced && autoRotate) {
+        model.rotation.y += 0.01;
+    }
+
+    renderer.render(scene, camera);
+}
+
+// Place model at detected surface
+function placeModelWebXR(hitPose) {
+    if (!model || isModelPlaced) return;
+
+    console.log('[WebXR] Placing model at detected surface');
+
+    const position = new THREE.Vector3();
+    const rotation = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+    
+    const matrix = new THREE.Matrix4().fromArray(hitPose.transform.matrix);
+    matrix.decompose(position, rotation, scale);
+
+    model.position.copy(position);
+    model.quaternion.copy(rotation);
+    model.visible = true;
+
+    reticle.visible = false;
+    isModelPlaced = true;
+
+    updatePositionText('Model anchored in AR space!');
+
+    if (navigator.vibrate) {
+        navigator.vibrate([50, 100, 50]);
+    }
+
+    console.log('[WebXR] Model placed and anchored');
 }
 
 // Start AR Experience with camera feed
@@ -258,7 +505,7 @@ function createSurfaceIndicator() {
     });
     surfaceIndicator = new THREE.Mesh(geometry, material);
     surfaceIndicator.rotation.x = -Math.PI / 2; // Make it horizontal
-    surfaceIndicator.position.set(0, -1, -3); // Position in front of camera
+    surfaceIndicator.position.set(0, 0, -2); // Position closer and centered
     surfaceIndicator.visible = true;
     scene.add(surfaceIndicator);
     
@@ -492,6 +739,9 @@ function handleTouchEnd(e) {
 
 // Handle canvas click/tap to place model
 function handleCanvasClick(e) {
+    // Skip if using WebXR (auto-placement handles it)
+    if (useWebXR) return;
+    
     // Check if this was preceded by dragging
     if (isDragging) {
         console.log('[AR] Ignoring click due to drag');
@@ -517,6 +767,10 @@ function handleCanvasClick(e) {
         
         isModelPlaced = true;
         updatePositionText('Model placed! Use gestures to interact');
+        
+        console.log('[AR] Model placed at position:', model.position);
+        console.log('[AR] Model scale:', model.scale);
+        console.log('[AR] Model visible:', model.visible);
         
         // Add entrance animation
         const startScale = modelScale * 0.1;
@@ -690,9 +944,14 @@ function onWindowResize() {
 }
 
 // Exit AR and cleanup
-// Exit AR and cleanup
 function exitAR() {
     isArActive = false;
+    
+    // End WebXR session if active
+    if (xrSession) {
+        xrSession.end();
+        xrSession = null;
+    }
     
     // Stop camera
     const video = document.getElementById('video');
@@ -703,6 +962,7 @@ function exitAR() {
     
     // Cleanup Three.js
     if (renderer) {
+        renderer.setAnimationLoop(null);
         renderer.dispose();
     }
     if (scene) {
