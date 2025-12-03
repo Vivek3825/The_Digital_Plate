@@ -184,6 +184,37 @@ body {
     margin: 0;
 }
 
+.status-message {
+    position: absolute;
+    bottom: max(20px, env(safe-area-inset-bottom, 20px));
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(5, 10, 25, 0.85);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(0, 255, 255, 0.35);
+    z-index: 180;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+.status-message.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.status-message.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .start-content {

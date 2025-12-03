@@ -4,6 +4,7 @@ let isArActive = false;
 let isModelPlaced = false;
 let autoRotate = true;
 let surfaceIndicator;
+let lastSurfaceDetected = false;
 
 // WebXR variables
 let xrSession = null;
@@ -11,6 +12,7 @@ let xrRefSpace = null;
 let hitTestSource = null;
 let reticle = null;
 let useWebXR = false;
+let domOverlayEnabled = false;
 
 // Touch interaction variables
 let touchStartX = 0;
@@ -91,9 +93,91 @@ const hologramState = {
 };
 const tempBox = new THREE.Box3();
 const tempVector = new THREE.Vector3();
+const tempQuaternion = new THREE.Quaternion();
+const tempScale = new THREE.Vector3();
+const tempDir = new THREE.Vector3();
 
 const HIT_STABILITY_THRESHOLD = 3;
 let consecutiveHitFrames = 0;
+let statusMessageTimeout = null;
+
+const CAMERA_GROUND_Y = -0.2;
+
+function isUiInteractionTarget(target) {
+    if (!target || typeof target.closest !== 'function') return false;
+    return Boolean(
+        target.closest('.control-panel') ||
+        target.closest('.exit-btn') ||
+        target.closest('.exit-ar-btn') ||
+        target.closest('.size-indicator')
+    );
+}
+
+function getStatusElement() {
+    return document.getElementById('statusMessage');
+}
+
+function hideStatusMessage() {
+    const el = getStatusElement();
+    if (!el) return;
+    el.classList.add('hidden');
+    el.classList.remove('visible');
+    if (statusMessageTimeout) {
+        clearTimeout(statusMessageTimeout);
+        statusMessageTimeout = null;
+    }
+}
+
+function showStatusMessage(text, options = {}) {
+    const el = getStatusElement();
+    if (!el) {
+        if (text) console.log('[AR]', text);
+        return;
+    }
+    if (!text) {
+        hideStatusMessage();
+        return;
+    }
+    el.textContent = text;
+    el.classList.remove('hidden');
+    el.classList.add('visible');
+    if (statusMessageTimeout) {
+        clearTimeout(statusMessageTimeout);
+        statusMessageTimeout = null;
+    }
+    if (!options.sticky) {
+        const duration = options.duration ?? 4000;
+        statusMessageTimeout = setTimeout(() => {
+            hideStatusMessage();
+        }, duration);
+    }
+}
+
+function projectScreenPointToGround(clientX, clientY) {
+    if (!camera || !renderer) return null;
+    const rect = renderer.domElement.getBoundingClientRect();
+    const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
+    const ndcY = -(((clientY - rect.top) / rect.height) * 2 - 1);
+    const ndc = new THREE.Vector3(ndcX, ndcY, 0.5);
+    ndc.unproject(camera);
+    tempDir.copy(ndc).sub(camera.position).normalize();
+    const epsilon = 1e-4;
+    if (Math.abs(tempDir.y) < epsilon) {
+        return null;
+    }
+    const t = (CAMERA_GROUND_Y - camera.position.y) / tempDir.y;
+    if (t <= 0) {
+        return null;
+    }
+    return new THREE.Vector3().copy(camera.position).add(tempDir.multiplyScalar(t));
+}
+
+function updateSurfaceIndicatorPosition(point) {
+    if (!surfaceIndicator || !point) return;
+    surfaceIndicator.position.copy(point);
+    surfaceIndicator.position.y = CAMERA_GROUND_Y;
+    surfaceIndicator.visible = true;
+}
 
 // Get model from URL parameter
 function getModelFromURL() {
@@ -563,37 +647,73 @@ function showStartButton(modelFile) {
     loadingIndicator.classList.add('hidden');
     startArButton.classList.remove('hidden');
     startArButton.style.display = ''; // Reset display
+    showStatusMessage('Tap "Start AR Experience" to begin.', { sticky: true });
     
-    startArBtn.addEventListener('click', () => {
-        // Completely hide the start button
-        startArButton.classList.add('hidden');
-        startArButton.style.display = 'none';
-        tryStartWebXR(modelFile);
-    });
+    startArBtn.onclick = () => {
+        startArFlow(modelFile);
+    };
 }
 
-// Try to start WebXR, fall back to camera mode if not supported
-async function tryStartWebXR(modelFile) {
-    // Check if WebXR is available
-    if (!navigator.xr) {
-        alert('WebXR not available on this device. Please use a device with AR support (Android with ARCore).');
-        return;
+async function startArFlow(modelFile) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const startArButton = document.getElementById('startArButton');
+
+    if (startArButton) {
+        startArButton.classList.add('hidden');
+        startArButton.style.display = 'none';
+    }
+    if (loadingIndicator) {
+        loadingIndicator.classList.remove('hidden');
+    }
+    showStatusMessage('Initializing sensors...', { sticky: true });
+
+    let webXRError = null;
+
+    if (await isWebXRSupported()) {
+        try {
+            await startWebXRSession(modelFile);
+            showStatusMessage('Move your device to find a surface.', { sticky: true });
+            return;
+        } catch (error) {
+            webXRError = error;
+            console.warn('[AR] WebXR failed, falling back to camera mode.', error);
+            showStatusMessage('WebXR failed. Falling back to camera mode...', { duration: 3500 });
+        }
+    } else {
+        console.info('[AR] WebXR not supported. Using camera fallback.');
+        showStatusMessage('Device lacks WebXR. Using camera overlay.', { duration: 3500 });
     }
 
     try {
-        // Check for immersive-ar support
-        const supported = await navigator.xr.isSessionSupported('immersive-ar');
-        
-        if (!supported) {
-            alert('WebXR AR not supported on this device. Please use Chrome on Android with ARCore.');
-            return;
+        await startARExperience(modelFile);
+        showStatusMessage('Point your camera at a flat surface and tap to place.', { sticky: true });
+    } catch (cameraError) {
+        console.error('[AR] Camera fallback failed:', cameraError);
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
         }
+        if (startArButton) {
+            startArButton.classList.remove('hidden');
+            startArButton.style.display = '';
+        }
+        const prefix = webXRError ? 'WebXR failed and camera fallback also failed.\n\n' : '';
+        const message = cameraError?.message || 'Unable to start AR experience.';
+        alert(prefix + message);
+        hideStatusMessage();
+        showStatusMessage('Unable to start AR. Please adjust permissions and retry.', { duration: 6000 });
+    }
+}
 
-        // Try to start WebXR
-        await startWebXRSession(modelFile);
+async function isWebXRSupported() {
+    if (!navigator.xr) {
+        return false;
+    }
+
+    try {
+        return await navigator.xr.isSessionSupported('immersive-ar');
     } catch (error) {
-        console.error('[AR] WebXR failed:', error);
-        alert('Failed to start AR: ' + error.message);
+        console.warn('[AR] Failed to query WebXR support:', error);
+        return false;
     }
 }
 
@@ -626,8 +746,8 @@ async function startWebXRSession(modelFile) {
         xrSession = await navigator.xr.requestSession('immersive-ar', sessionOptions);
 
         // Check if DOM overlay is supported
-        const hasDomOverlay = xrSession.domOverlayState !== undefined;
-        console.log('[WebXR] DOM Overlay supported:', hasDomOverlay);
+        domOverlayEnabled = Boolean(xrSession.domOverlayState && xrSession.domOverlayState.type);
+        console.log('[WebXR] DOM Overlay supported:', domOverlayEnabled);
 
     // Initialize Three.js for WebXR
     await initThreeJSWebXR(modelFile);
@@ -647,6 +767,7 @@ async function startWebXRSession(modelFile) {
         xrSession.addEventListener('end', () => {
             xrSession = null;
             hitTestSource = null;
+            domOverlayEnabled = false;
             window.location.href = '../index.html';
         });
 
@@ -667,6 +788,10 @@ async function startWebXRSession(modelFile) {
             sizeIndicator.classList.remove('visible');
         }
 
+        if (!domOverlayEnabled) {
+            showStatusMessage('Controller tap to place. Screen gestures limited (DOM overlay unavailable).', { duration: 6000 });
+        }
+
         // Show canvas and controls
         canvas.style.display = 'block';
         arControls.classList.remove('hidden');
@@ -681,14 +806,7 @@ async function startWebXRSession(modelFile) {
     } catch (error) {
         console.error('[WebXR] Session error:', error);
         loadingIndicator.classList.add('hidden');
-        
-        // Show start button again on error
-        if (startArButton) {
-            startArButton.classList.remove('hidden');
-            startArButton.style.display = '';
-        }
-        
-        alert('Failed to start WebXR session: ' + error.message);
+        throw new Error('Failed to start WebXR session: ' + error.message);
     }
 }
 
@@ -806,6 +924,10 @@ function renderWebXR(timestamp, frame) {
                 // Show reticle
                 reticle.visible = true;
                 reticle.matrix.fromArray(hitPose.transform.matrix);
+                if (!lastSurfaceDetected) {
+                    updatePositionText('Surface detected. Hold steady to place.', { duration: 2500 });
+                }
+                lastSurfaceDetected = true;
 
                 if (consecutiveHitFrames === 0) {
                     updatePositionText('Surface detected. Hold steady for placement.');
@@ -820,10 +942,18 @@ function renderWebXR(timestamp, frame) {
             } else {
                 reticle.visible = false;
                 consecutiveHitFrames = 0;
+                if (lastSurfaceDetected) {
+                    updatePositionText('Tracking lost. Move device slowly to re-acquire surface.', { duration: 2500 });
+                }
+                lastSurfaceDetected = false;
             }
         } else {
             reticle.visible = false;
             consecutiveHitFrames = 0;
+            if (lastSurfaceDetected) {
+                updatePositionText('Tracking lost. Move device slowly to re-acquire surface.', { duration: 2500 });
+            }
+            lastSurfaceDetected = false;
         }
     }
 
@@ -871,6 +1001,17 @@ function placeModelWebXR(hitPose) {
         showHoloInfoPanel(modelFile);
         updateSizeIndicator();
     }, 800);
+}
+
+function moveModelToReticle() {
+    if (!model || !reticle || !reticle.visible) return false;
+    reticle.matrix.decompose(tempVector, tempQuaternion, tempScale);
+    model.position.copy(tempVector);
+    model.quaternion.copy(tempQuaternion);
+    model.visible = true;
+    isModelPlaced = true;
+    updatePositionText('✅ Model moved to detected surface.');
+    return true;
 }
 
 // Start AR Experience with camera feed
@@ -934,18 +1075,16 @@ async function startARExperience(modelFile) {
         animate();
 
     } catch (error) {
-        console.error('[AR] Experience Error:', error);
         loadingIndicator.classList.add('hidden');
-        
         let errorMessage = 'Unable to start AR experience.\n\n';
         
         if (error.message.includes('HTTPS') || error.message.includes('localhost')) {
-            errorMessage = '🔒 Security Error: AR features require HTTPS or localhost.\n\n';
-            errorMessage += 'Solution:\n';
-            errorMessage += '1. Open terminal in project folder\n';
-            errorMessage += '2. Run: python3 -m http.server 8000\n';
-            errorMessage += '3. Open: http://localhost:8000 in your browser\n';
-            errorMessage += '4. Navigate to AR page from there';
+            errorMessage = '🔒 Security Error: AR features require HTTPS or localhost.\n\n'
+                + 'Solution:\n'
+                + '1. Open terminal in project folder\n'
+                + '2. Run: python3 -m http.server 8000\n'
+                + '3. Open: http://localhost:8000 in your browser\n'
+                + '4. Navigate to AR page from there';
         } else if (error.name === 'NotAllowedError') {
             errorMessage += 'Camera access was denied. Please allow camera permissions in your browser settings.';
         } else if (error.name === 'NotFoundError') {
@@ -957,14 +1096,9 @@ async function startARExperience(modelFile) {
         } else {
             errorMessage += error.message;
         }
-        
-        alert(errorMessage);
-        console.error('[AR] Full error details:', error);
-        
-        // Redirect back to menu after error
-        setTimeout(() => {
-            window.location.href = '../index.html';
-        }, 2000);
+
+        console.error('[AR] Experience Error:', errorMessage, error);
+        throw new Error(errorMessage);
     }
 }
 
@@ -1032,7 +1166,7 @@ function createSurfaceIndicator() {
     });
     surfaceIndicator = new THREE.Mesh(geometry, material);
     surfaceIndicator.rotation.x = -Math.PI / 2; // Make it horizontal
-    surfaceIndicator.position.set(0, 0, -2); // Position closer and centered
+    surfaceIndicator.position.set(0, CAMERA_GROUND_Y, -2); // Position closer and centered
     surfaceIndicator.visible = true;
     scene.add(surfaceIndicator);
     
@@ -1145,7 +1279,10 @@ function animate() {
 // Handle touch start
 function handleTouchStart(e) {
     // Skip if touching control buttons
-    if (e.target.closest('.control-panel') || e.target.closest('.exit-ar-btn') || e.target.closest('.size-indicator')) {
+    if (isUiInteractionTarget(e.target)) {
+        return;
+    }
+    if (useWebXR && !domOverlayEnabled) {
         return;
     }
     
@@ -1178,11 +1315,18 @@ function handleTouchStart(e) {
 // Handle touch move
 function handleTouchMove(e) {
     // Skip if touching control buttons
-    if (e.target.closest('.control-panel') || e.target.closest('.exit-ar-btn') || e.target.closest('.size-indicator')) {
+    if (isUiInteractionTarget(e.target)) {
+        return;
+    }
+    if (useWebXR && !domOverlayEnabled) {
         return;
     }
     
     if (e.touches.length === 1 && !isTwoFingerGesture) {
+        if (useWebXR) {
+            updatePositionText('Tap once to move dish to highlighted surface.', { duration: 2000 });
+            return;
+        }
         // Single finger drag - hold and drag to reposition model
         const moveThreshold = 5; // Lower threshold for more responsive dragging
         const deltaX = e.touches[0].clientX - touchStartX;
@@ -1194,21 +1338,13 @@ function handleTouchMove(e) {
         }
         
         if (model && isModelPlaced && isDragging) {
-            // Drag to move model - works in both camera and WebXR mode
-            // Higher sensitivity for easier repositioning
-            const moveSensitivity = useWebXR ? 0.002 : 0.008;
+            const moveSensitivity = 0.008;
             const dx = (e.touches[0].clientX - touchStartX) * moveSensitivity;
             const dy = (e.touches[0].clientY - touchStartY) * moveSensitivity;
-            
-            // Move on X and Z axes (horizontal plane)
-            // Drag left/right = move left/right (X axis)
-            // Drag up/down = move forward/backward (Z axis) - drag up moves closer
             model.position.x += dx;
-            model.position.z += dy; // Drag down = move away, drag up = move closer
-            
+            model.position.z += dy;
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-            
             updatePositionText();
         }
     } else if (e.touches.length === 2) {
@@ -1271,7 +1407,10 @@ function handleTouchMove(e) {
 // Handle touch end
 function handleTouchEnd(e) {
     // Skip if touching control buttons
-    if (e.target && e.target.closest && (e.target.closest('.control-panel') || e.target.closest('.exit-ar-btn'))) {
+    if (isUiInteractionTarget(e.target)) {
+        return;
+    }
+    if (useWebXR && !domOverlayEnabled) {
         return;
     }
     
@@ -1292,6 +1431,15 @@ function handleTouchEnd(e) {
     if (wasTap && !isModelPlaced && !useWebXR) {
         // Trigger placement via click event (camera mode only)
         handleCanvasClick(e);
+    } else if (wasTap && useWebXR) {
+        if (moveModelToReticle()) {
+            updatePositionText('✅ Model moved to detected surface.');
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+        } else {
+            updatePositionText('Move device slowly to highlight a surface, then tap again.', { duration: 2500 });
+        }
     }
     
     // Small delay before resetting drag flag to prevent click event from firing
@@ -1315,51 +1463,51 @@ function handleCanvasClick(e) {
         return;
     }
     
+    const placementPoint = projectScreenPointToGround(e.clientX, e.clientY);
+    if (!placementPoint) {
+        updatePositionText('Aim toward a flat surface and try again.', { duration: 2500 });
+        return;
+    }
+    placementPoint.y = CAMERA_GROUND_Y;
+    updateSurfaceIndicatorPosition(placementPoint);
+    const hoverOffset = 0.15;
     if (!isModelPlaced) {
-        // Place model at the surface indicator position
-        model.position.copy(surfaceIndicator.position);
-        model.position.y += 0.2; // Slightly above surface
+        model.position.copy(placementPoint);
+        model.position.y += hoverOffset;
         model.visible = true;
-        
-        // Hide surface indicator
-        surfaceIndicator.visible = false;
-        
+        if (surfaceIndicator) {
+            surfaceIndicator.visible = false;
+        }
         isModelPlaced = true;
-        
-        // Get real size for display
         const modelFile = getModelFromURL();
         const config = modelConfigs[modelFile];
         realSizeConfig = config || null;
-        
         updatePositionText(`Model placed! Real size: ${config?.realSizeCm || 25} cm`);
-        
-        // Add entrance animation
         const startScale = modelScale * 0.1;
         const targetScale = modelScale;
         let progress = 0;
-        
         model.scale.set(startScale, startScale, startScale);
-        
         const placeAnimation = setInterval(() => {
             progress += 0.05;
             const currentScale = startScale + (targetScale - startScale) * Math.sin(progress * Math.PI / 2);
             model.scale.set(currentScale, currentScale, currentScale);
-            
             if (progress >= 1) {
                 model.scale.set(targetScale, targetScale, targetScale);
                 clearInterval(placeAnimation);
-                
-                // Show info panel and size indicator after animation completes
                 showHoloInfoPanel(modelFile);
                 updateSizeIndicator();
             }
         }, 16);
-        
-        // Haptic feedback
         if (navigator.vibrate) {
             navigator.vibrate(50);
         }
-        
+    } else {
+        model.position.copy(placementPoint);
+        model.position.y += hoverOffset;
+        updatePositionText('Model moved.', { duration: 1500 });
+    }
+    if (surfaceIndicator) {
+        surfaceIndicator.visible = false;
     }
 }
 
@@ -1408,8 +1556,13 @@ function resetModel() {
     realSizeConfig = config || null;
     
     model.scale.set(modelScale, modelScale, modelScale);
-    model.position.copy(surfaceIndicator.position);
-    model.position.y += 0.2;
+    if (!useWebXR && surfaceIndicator) {
+        model.position.copy(surfaceIndicator.position);
+        model.position.y += 0.2;
+    } else if (useWebXR && reticle && reticle.visible) {
+        reticle.matrix.decompose(tempVector, tempQuaternion, tempScale);
+        model.position.copy(tempVector);
+    }
     model.rotation.set(0, 0, 0);
     
     if (isModelPlaced) {
@@ -1422,7 +1575,9 @@ function resetModel() {
         }
     } else {
         model.visible = false;
-        surfaceIndicator.visible = true;
+        if (surfaceIndicator) {
+            surfaceIndicator.visible = true;
+        }
         updatePositionText('Tap screen to place model');
         
         // Hide info panel and size indicator when model is reset to not placed
@@ -1452,13 +1607,13 @@ function toggleRotation() {
     }
 }
 
-// Update position text - removed UI element, function kept for compatibility
-function updatePositionText(text) {
-    // Position text UI removed - this function is now a no-op
-    // Kept for compatibility with existing code that calls it
-    if (text) {
-        console.log('[AR]', text);
+// Update position text via status overlay
+function updatePositionText(text, options) {
+    if (text === undefined || text === null || text === '') {
+        hideStatusMessage();
+        return;
     }
+    showStatusMessage(text, options);
 }
 
 // Mouse support for desktop testing
@@ -1470,7 +1625,7 @@ function handleMouseDown(e) {
 }
 
 function handleMouseMove(e) {
-    if (!isMouseDown || !model || !isModelPlaced) return;
+    if (!isMouseDown || !model || !isModelPlaced || useWebXR) return;
     
     const moveThreshold = 5;
     const deltaX = e.clientX - mouseStartX;
@@ -1550,6 +1705,8 @@ function onWindowResize() {
 // Exit AR and cleanup
 function exitAR() {
     isArActive = false;
+    domOverlayEnabled = false;
+    lastSurfaceDetected = false;
     
     // End WebXR session if active
     if (xrSession) {
@@ -1574,6 +1731,7 @@ function exitAR() {
     }
     hologramGroup = null;
     sizeSprite = null;
+    hideStatusMessage();
     
     // Go back to frontend menu
     window.location.href = '../index.html';
