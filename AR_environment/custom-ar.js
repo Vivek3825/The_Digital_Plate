@@ -642,19 +642,38 @@ function setupEventListeners(modelFile) {
 function showStartButton(modelFile) {
     const loadingIndicator = document.getElementById('loadingIndicator');
     const startArButton = document.getElementById('startArButton');
-    const startArBtn = document.getElementById('startArBtn');
+    const autoModeBtn = document.getElementById('autoModeBtn');
+    const webxrModeBtn = document.getElementById('webxrModeBtn');
+    const cameraModeBtn = document.getElementById('cameraModeBtn');
     
     loadingIndicator.classList.add('hidden');
     startArButton.classList.remove('hidden');
     startArButton.style.display = ''; // Reset display
-    showStatusMessage('Tap "Start AR Experience" to begin.', { sticky: true });
+    hideStatusMessage();
     
-    startArBtn.onclick = () => {
-        startArFlow(modelFile);
-    };
+    // Auto Detect: tries WebXR first, falls back to camera
+    if (autoModeBtn) {
+        autoModeBtn.onclick = () => {
+            startArFlow(modelFile, 'auto');
+        };
+    }
+    
+    // Force WebXR mode
+    if (webxrModeBtn) {
+        webxrModeBtn.onclick = () => {
+            startArFlow(modelFile, 'webxr');
+        };
+    }
+    
+    // Force Camera mode
+    if (cameraModeBtn) {
+        cameraModeBtn.onclick = () => {
+            startArFlow(modelFile, 'camera');
+        };
+    }
 }
 
-async function startArFlow(modelFile) {
+async function startArFlow(modelFile, mode = 'auto') {
     const loadingIndicator = document.getElementById('loadingIndicator');
     const startArButton = document.getElementById('startArButton');
 
@@ -667,6 +686,41 @@ async function startArFlow(modelFile) {
     }
     showStatusMessage('Initializing sensors...', { sticky: true });
 
+    // Mode: 'auto' | 'webxr' | 'camera'
+    
+    if (mode === 'camera') {
+        // Force camera mode
+        try {
+            await startARExperience(modelFile);
+            showStatusMessage('Point your camera at a flat surface and tap to place.', { sticky: true });
+        } catch (cameraError) {
+            handleStartError(cameraError, null, loadingIndicator, startArButton);
+        }
+        return;
+    }
+    
+    if (mode === 'webxr') {
+        // Force WebXR mode - no fallback
+        const supported = await isWebXRSupported();
+        if (!supported) {
+            showStatusMessage('WebXR AR is not supported on this device.', { duration: 5000 });
+            if (loadingIndicator) loadingIndicator.classList.add('hidden');
+            if (startArButton) {
+                startArButton.classList.remove('hidden');
+                startArButton.style.display = '';
+            }
+            return;
+        }
+        try {
+            await startWebXRSession(modelFile);
+            showStatusMessage('Move your device to find a surface.', { sticky: true });
+        } catch (error) {
+            handleStartError(null, error, loadingIndicator, startArButton);
+        }
+        return;
+    }
+    
+    // Auto mode: try WebXR, fallback to camera
     let webXRError = null;
 
     if (await isWebXRSupported()) {
@@ -688,20 +742,24 @@ async function startArFlow(modelFile) {
         await startARExperience(modelFile);
         showStatusMessage('Point your camera at a flat surface and tap to place.', { sticky: true });
     } catch (cameraError) {
-        console.error('[AR] Camera fallback failed:', cameraError);
-        if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
-        }
-        if (startArButton) {
-            startArButton.classList.remove('hidden');
-            startArButton.style.display = '';
-        }
-        const prefix = webXRError ? 'WebXR failed and camera fallback also failed.\n\n' : '';
-        const message = cameraError?.message || 'Unable to start AR experience.';
-        alert(prefix + message);
-        hideStatusMessage();
-        showStatusMessage('Unable to start AR. Please adjust permissions and retry.', { duration: 6000 });
+        handleStartError(cameraError, webXRError, loadingIndicator, startArButton);
     }
+}
+
+function handleStartError(cameraError, webXRError, loadingIndicator, startArButton) {
+    console.error('[AR] Start failed:', cameraError || webXRError);
+    if (loadingIndicator) {
+        loadingIndicator.classList.add('hidden');
+    }
+    if (startArButton) {
+        startArButton.classList.remove('hidden');
+        startArButton.style.display = '';
+    }
+    const prefix = webXRError ? 'WebXR failed and camera fallback also failed.\n\n' : '';
+    const message = (cameraError || webXRError)?.message || 'Unable to start AR experience.';
+    alert(prefix + message);
+    hideStatusMessage();
+    showStatusMessage('Unable to start AR. Please adjust permissions and retry.', { duration: 6000 });
 }
 
 async function isWebXRSupported() {

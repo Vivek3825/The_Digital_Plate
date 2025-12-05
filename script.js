@@ -226,6 +226,28 @@ function initializeMenu() {
     renderMenuItems(currentFilter);
 }
 
+// Priority order for menu items
+const PRIORITY_ORDER = [
+    'Samosa',
+    'Pizza',
+    'Chicken Masala',
+    'Egg Masala Thali',
+    'Paneer Masala',
+    'Monster Energy Drink'
+];
+
+// Badge popularity weights (higher = more popular)
+const BADGE_WEIGHTS = {
+    'Popular': 5,
+    'Chef Special': 4,
+    'AR Available': 3,
+    'Premium': 2,
+    'Signature': 2,
+    'New': 1,
+    'Vegan': 1,
+    '': 0
+};
+
 // Render Menu Items
 function renderMenuItems(category) {
     const menuGrid = document.getElementById('menuGrid');
@@ -239,7 +261,7 @@ function renderMenuItems(category) {
     menuGrid.innerHTML = '';
     
     const filteredItems = category === 'all' 
-        ? menuData 
+        ? [...menuData] 
         : menuData.filter(item => item.category === category);
     
     if (filteredItems.length === 0) {
@@ -251,6 +273,25 @@ function renderMenuItems(category) {
         `;
         return;
     }
+    
+    // Sort items: priority items first, then by popularity badge weight
+    filteredItems.sort((a, b) => {
+        const aPriority = PRIORITY_ORDER.indexOf(a.name);
+        const bPriority = PRIORITY_ORDER.indexOf(b.name);
+        
+        // If both are in priority list, sort by priority order
+        if (aPriority !== -1 && bPriority !== -1) {
+            return aPriority - bPriority;
+        }
+        // Priority items come first
+        if (aPriority !== -1) return -1;
+        if (bPriority !== -1) return 1;
+        
+        // For non-priority items, sort by badge weight (popularity)
+        const aWeight = BADGE_WEIGHTS[a.badge] || 0;
+        const bWeight = BADGE_WEIGHTS[b.badge] || 0;
+        return bWeight - aWeight;
+    });
     
     filteredItems.forEach((item, index) => {
         const menuItem = createMenuItem(item, index);

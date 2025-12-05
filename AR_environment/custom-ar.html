@@ -30,11 +30,27 @@
         <!-- Status / Guidance Message -->
         <div id="statusMessage" class="status-message hidden" aria-live="polite"></div>
 
-        <!-- Start AR Button -->
+        <!-- Start AR Panel -->
         <div id="startArButton" class="start-ar-button hidden">
-            <button id="startArBtn" class="ar-start-btn">
-                🚀 Start AR Experience
-            </button>
+            <div class="start-panel">
+                <h2>Choose how you want to explore</h2>
+                <p class="start-caption">New here? Pick <strong>Auto Detect</strong> and we'll choose the best AR mode for your device. You can also force WebXR or Camera AR manually.</p>
+                <div class="mode-buttons">
+                    <button id="autoModeBtn" class="mode-btn primary">
+                        ⚡ Auto Detect
+                        <span>Smart choice for most users</span>
+                    </button>
+                    <button id="webxrModeBtn" class="mode-btn">
+                        🛰 WebXR AR
+                        <span>Immersive if your device supports ARCore / ARKit</span>
+                    </button>
+                    <button id="cameraModeBtn" class="mode-btn">
+                        📷 Camera AR
+                        <span>Works anywhere with a rear camera</span>
+                    </button>
+                </div>
+                <p class="start-hint">Tip: Give camera permissions when prompted so the experience can begin instantly.</p>
+            </div>
         </div>
 
         <!-- AR Controls Overlay -->
