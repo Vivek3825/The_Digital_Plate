@@ -154,8 +154,8 @@ body {
 
 .control-panel {
     position: absolute;
-    top: max(20px, env(safe-area-inset-top, 20px));
-    right: max(20px, env(safe-area-inset-right, 20px));
+    top: 15px;
+    right: max(15px, env(safe-area-inset-right, 15px));
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -406,9 +406,9 @@ body {
 
 .holo-info-panel {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 15px;
+    left: 15px;
+    transform: none;
     z-index: 50;
     pointer-events: none;
     opacity: 0;
@@ -435,17 +435,17 @@ body {
         rgba(120, 0, 255, 0.08) 100%
     );
     border: 1px solid rgba(0, 255, 255, 0.4);
-    border-radius: 15px;
-    padding: 20px 25px;
-    min-width: 280px;
-    max-width: 320px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    border-radius: 10px;
+    padding: 12px 15px;
+    min-width: 200px;
+    max-width: 240px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     box-shadow: 
-        0 0 30px rgba(0, 255, 255, 0.2),
-        0 0 60px rgba(0, 150, 255, 0.1),
-        inset 0 0 30px rgba(0, 255, 255, 0.05);
-    animation: holoFloat 3s ease-in-out infinite, holoGlow 2s ease-in-out infinite alternate;
+        0 0 20px rgba(0, 255, 255, 0.15),
+        0 0 40px rgba(0, 150, 255, 0.08),
+        inset 0 0 20px rgba(0, 255, 255, 0.03);
+    animation: holoGlow 2s ease-in-out infinite alternate;
 }
 
 @keyframes holoFloat {
@@ -516,15 +516,15 @@ body {
 .holo-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 .holo-icon {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     color: #00ffff;
     animation: iconPulse 1.5s ease-in-out infinite;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
 }
 
 @keyframes iconPulse {
@@ -534,32 +534,32 @@ body {
 
 .holo-title {
     flex: 1;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
     margin: 0;
 }
 
 .holo-status {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.65rem;
+    gap: 4px;
+    font-size: 0.55rem;
     color: #00ff88;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .status-dot {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     background: #00ff88;
     border-radius: 50%;
     animation: statusBlink 1s ease-in-out infinite;
-    box-shadow: 0 0 8px #00ff88;
+    box-shadow: 0 0 6px #00ff88;
 }
 
 @keyframes statusBlink {
@@ -571,12 +571,12 @@ body {
 .holo-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.6), transparent);
-    margin: 10px 0;
+    margin: 8px 0;
 }
 
 /* Sections */
 .holo-section {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .holo-section:last-child {
@@ -586,25 +586,25 @@ body {
 .holo-label {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.7rem;
+    gap: 6px;
+    font-size: 0.6rem;
     color: #00ccff;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 6px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
     font-weight: 600;
 }
 
 .label-icon {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
 }
 
 .holo-data {
-    font-size: 0.85rem;
+    font-size: 0.72rem;
     color: rgba(255, 255, 255, 0.9);
-    line-height: 1.5;
+    line-height: 1.4;
     margin: 0;
-    padding-left: 22px;
+    padding-left: 18px;
     border-left: 2px solid rgba(0, 255, 255, 0.3);
     animation: dataFadeIn 0.5s ease forwards;
 }
@@ -682,26 +682,24 @@ body {
     .holo-container {
         min-width: 250px;
         max-width: 280px;
-        padding: 15px 18px;
+        padding: 10px 12px;
     }
     
     .holo-title {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
     
     .holo-data {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
     }
 }
 
-/* Position the panel to the side on larger screens */
+/* Position the panel on larger screens */
 @media (min-width: 768px) {
     .holo-info-panel {
-        top: 50%;
-        left: auto;
-        right: 100px;
-        transform: translateY(-50%);
+        top: 20px;
+        left: 20px;
+        right: auto;
+        transform: none;
     }
 }
-
-/* Size indicator styles removed - no longer used */

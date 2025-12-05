@@ -40,10 +40,9 @@ const modelConfigs = {
 };
 
 // Realistic scaling variables
-let baseModelSize = 1; // Base size of model in scene units
-let currentRealSizeCm = 25; // Current displayed size in cm
-let realSizeConfig = null; // Current dish real size config
-let sizeSprite = null; // 3D sprite showing current size in AR
+let baseModelSize = 1;
+let currentRealSizeCm = 25;
+let realSizeConfig = null;
 
 // Dish details data (from ingredients_nutrients_filled.csv)
 const dishData = {
@@ -158,18 +157,33 @@ function projectScreenPointToGround(clientX, clientY) {
     const rect = renderer.domElement.getBoundingClientRect();
     const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
     const ndcY = -(((clientY - rect.top) / rect.height) * 2 - 1);
-    const ndc = new THREE.Vector3(ndcX, ndcY, 0.5);
-    ndc.unproject(camera);
-    tempDir.copy(ndc).sub(camera.position).normalize();
-    const epsilon = 1e-4;
-    if (Math.abs(tempDir.y) < epsilon) {
-        return null;
+    
+    // Create ray from camera through click point
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
+    
+    // Create a ground plane at CAMERA_GROUND_Y
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -CAMERA_GROUND_Y);
+    const intersectPoint = new THREE.Vector3();
+    
+    // Find intersection with ground plane
+    const ray = raycaster.ray;
+    if (ray.intersectPlane(groundPlane, intersectPoint)) {
+        // Limit distance from camera to prevent too far placement
+        const maxDistance = 5;
+        const distanceFromCamera = intersectPoint.distanceTo(camera.position);
+        if (distanceFromCamera > maxDistance) {
+            // Clamp to max distance
+            const direction = intersectPoint.clone().sub(camera.position).normalize();
+            intersectPoint.copy(camera.position).add(direction.multiplyScalar(maxDistance));
+            intersectPoint.y = CAMERA_GROUND_Y;
+        }
+        return intersectPoint;
     }
-    const t = (CAMERA_GROUND_Y - camera.position.y) / tempDir.y;
-    if (t <= 0) {
-        return null;
-    }
-    return new THREE.Vector3().copy(camera.position).add(tempDir.multiplyScalar(t));
+    
+    // Fallback: place in front of camera
+    const defaultPoint = new THREE.Vector3(0, CAMERA_GROUND_Y, -2);
+    return defaultPoint;
 }
 
 function updateSurfaceIndicatorPosition(point) {
@@ -216,9 +230,6 @@ function showHoloInfoPanel(modelFile) {
     document.getElementById('holoIngredients').textContent = dish.ingredients;
     document.getElementById('holoNutrients').textContent = dish.nutrients;
     
-    // Update size indicator
-    updateSizeIndicator();
-    
     // Show panel with animation
     const panel = document.getElementById('holoInfoPanel');
     panel.classList.remove('hidden');
@@ -263,32 +274,6 @@ function hideHoloInfoPanel() {
     
     // Hide 3D hologram
     hideHologramGroup();
-    
-    // Hide 3D size sprite
-    if (sizeSprite && scene) {
-        scene.remove(sizeSprite);
-        if (sizeSprite.material && sizeSprite.material.map) sizeSprite.material.map.dispose();
-        if (sizeSprite.material) sizeSprite.material.dispose();
-        sizeSprite = null;
-    }
-}
-
-// Update the size indicator display - DISABLED (no size labels)
-function updateSizeIndicator() {
-    // Size indicator removed - function kept as no-op to prevent errors
-    return;
-}
-
-// Update 3D size sprite - DISABLED (no size labels)
-function update3DSizeSprite() {
-    // Size sprite removed - function kept as no-op
-    return;
-}
-
-// Update size sprite position in render loop - DISABLED
-function updateSizeSpritePosition() {
-    // Size sprite removed - function kept as no-op
-    return;
 }
 
 // Reset to real plate size
@@ -299,7 +284,6 @@ function resetToRealSize() {
     model.scale.set(modelScale, modelScale, modelScale);
     currentRealSizeCm = realSizeConfig.realSizeCm;
     
-    updateSizeIndicator();
     updatePositionText(`📏 Reset to real size: ${realSizeConfig.realSizeCm} cm`);
     
     // Haptic feedback
@@ -357,76 +341,6 @@ function wrapText(ctx, text, maxWidth) {
         lines.push(currentLine);
     }
     return lines;
-}
-
-function createNeonSprite(text, options = {}) {
-    const fontSize = options.fontSize || 42;
-    const padding = options.padding || 28;
-    const maxWidth = options.maxWidth || 640;
-    const color = options.color || '#00ffff';
-    const gradientStart = options.gradientStart || 'rgba(0, 255, 255, 0.15)';
-    const gradientEnd = options.gradientEnd || 'rgba(120, 0, 255, 0.15)';
-    const font = options.font || `600 ${fontSize}px 'Orbitron', 'Segoe UI', sans-serif`;
-    const lineHeight = options.lineHeight || Math.round(fontSize * 1.2);
-    const borderRadius = options.borderRadius || 8;
-    const pixelRatio = window.devicePixelRatio || 1;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.font = font;
-    const lines = wrapText(ctx, text, maxWidth - padding * 2);
-    const width = maxWidth;
-    const height = lineHeight * lines.length + padding * 2;
-    canvas.width = width * pixelRatio;
-    canvas.height = height * pixelRatio;
-    ctx.scale(pixelRatio, pixelRatio);
-    ctx.font = font;
-    ctx.clearRect(0, 0, width, height);
-
-    // Draw rounded rectangle background with soft blur effect
-    ctx.beginPath();
-    ctx.roundRect(0, 0, width, height, borderRadius);
-    ctx.closePath();
-    
-    // Darker, more opaque background for better readability
-    ctx.fillStyle = 'rgba(5, 10, 25, 0.85)';
-    ctx.fill();
-    
-    // Gradient overlay
-    const gradient = ctx.createLinearGradient(0, 0, width, 0);
-    gradient.addColorStop(0, gradientStart);
-    gradient.addColorStop(1, gradientEnd);
-    ctx.fillStyle = gradient;
-    ctx.fill();
-
-    // Rounded border with glow
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Text with glow effect
-    ctx.fillStyle = color;
-    ctx.textBaseline = 'top';
-    lines.forEach((line, index) => {
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 12;
-        ctx.fillText(line, padding, padding + index * lineHeight);
-    });
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.needsUpdate = true;
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-
-    const material = new THREE.SpriteMaterial({
-        map: texture,
-        transparent: true,
-        depthWrite: false,
-        depthTest: false
-    });
-    const sprite = new THREE.Sprite(material);
-    const scaleFactor = options.scale ?? 0.0011;
-    sprite.scale.set(width * scaleFactor, height * scaleFactor, 1);
-    return sprite;
 }
 
 function createHoloRing(inner = 0.28, outer = 0.33) {
@@ -490,58 +404,184 @@ function updateHologramContent(dish) {
 
     const modelHeight = getModelHeight();
     
-    // Position labels to the LEFT of the model, stacked vertically with proper spacing
-    // Each label gets enough space to not overlap
-    const leftOffset = -0.22; // Position to left side
-    const baseHeight = modelHeight * 0.3; // Start position
-    const verticalSpacing = 0.08; // Space between each label
-
-    // Add dish name with size info - top label
+    // Create a single unified panel with all info (like HTML panel style)
     const sizeInfo = realSizeConfig ? ` (${currentRealSizeCm}cm)` : '';
-    const nameSprite = createNeonSprite(dish.name + sizeInfo, {
-        fontSize: 26,
-        lineHeight: 32,
-        maxWidth: 260,
-        color: '#00ffff',
-        padding: 12,
-        scale: 0.0008,
-        borderRadius: 10,
-        blurBackground: true
-    });
-    nameSprite.position.set(leftOffset, baseHeight, 0.1);
-    hologramGroup.add(nameSprite);
-    hologramState.sprites.push(nameSprite);
-
-    const detailSpriteOptions = {
-        fontSize: 16,
-        lineHeight: 20,
-        maxWidth: 220,
-        padding: 8,
-        scale: 0.00065,
-        borderRadius: 6,
-        blurBackground: true
-    };
-
-    // Ingredients - below name with proper spacing
-    const ingredientsSprite = createNeonSprite(`ING: ${dish.ingredients}`, {
-        ...detailSpriteOptions,
-        color: '#80ffea'
-    });
-    ingredientsSprite.position.set(leftOffset, baseHeight - verticalSpacing, 0.1);
-    hologramGroup.add(ingredientsSprite);
-    hologramState.sprites.push(ingredientsSprite);
-
-    // Nutrients - below ingredients with proper spacing
-    const nutrientsSprite = createNeonSprite(`NUTR: ${dish.nutrients}`, {
-        ...detailSpriteOptions,
-        color: '#9d86ff'
-    });
-    nutrientsSprite.position.set(leftOffset, baseHeight - verticalSpacing * 2, 0.1);
-    hologramGroup.add(nutrientsSprite);
-    hologramState.sprites.push(nutrientsSprite);
+    const panelSprite = createUnifiedHoloPanel(dish.name + sizeInfo, dish.ingredients, dish.nutrients);
+    
+    // Position panel to the left of the model
+    const leftOffset = -0.28;
+    panelSprite.position.set(leftOffset, modelHeight * 0.35, 0.1);
+    hologramGroup.add(panelSprite);
+    hologramState.sprites.push(panelSprite);
 
     hologramPulse = 0;
     updateHologramFollow(true);
+}
+
+// Create a unified hologram panel similar to the HTML panel look
+function createUnifiedHoloPanel(title, ingredients, nutrients) {
+    const padding = 20;
+    const maxWidth = 320;
+    const fontSize = 22;
+    const labelFontSize = 14;
+    const lineHeight = 26;
+    const labelLineHeight = 18;
+    const sectionGap = 12;
+    const pixelRatio = window.devicePixelRatio || 1;
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Calculate text wrapping
+    const titleFont = `700 ${fontSize}px 'Orbitron', 'Segoe UI', sans-serif`;
+    const labelFont = `600 ${labelFontSize}px 'Orbitron', 'Segoe UI', sans-serif`;
+    const contentFont = `400 ${labelFontSize}px 'Segoe UI', sans-serif`;
+    
+    ctx.font = titleFont;
+    const titleLines = wrapText(ctx, title, maxWidth - padding * 2);
+    
+    ctx.font = contentFont;
+    const ingredientLines = wrapText(ctx, ingredients, maxWidth - padding * 2);
+    const nutrientLines = wrapText(ctx, nutrients, maxWidth - padding * 2);
+    
+    // Calculate total height
+    const titleHeight = titleLines.length * lineHeight;
+    const ingredientSectionHeight = labelLineHeight + ingredientLines.length * labelLineHeight;
+    const nutrientSectionHeight = labelLineHeight + nutrientLines.length * labelLineHeight;
+    const totalHeight = padding * 2 + titleHeight + sectionGap * 2 + ingredientSectionHeight + nutrientSectionHeight + 10;
+    
+    canvas.width = maxWidth * pixelRatio;
+    canvas.height = totalHeight * pixelRatio;
+    ctx.scale(pixelRatio, pixelRatio);
+    
+    // Draw panel background with holographic gradient
+    ctx.beginPath();
+    ctx.roundRect(0, 0, maxWidth, totalHeight, 15);
+    ctx.closePath();
+    
+    // Background gradient (similar to HTML panel)
+    const bgGradient = ctx.createLinearGradient(0, 0, maxWidth, totalHeight);
+    bgGradient.addColorStop(0, 'rgba(0, 255, 255, 0.12)');
+    bgGradient.addColorStop(0.5, 'rgba(0, 150, 255, 0.15)');
+    bgGradient.addColorStop(1, 'rgba(120, 0, 255, 0.12)');
+    ctx.fillStyle = 'rgba(5, 15, 30, 0.9)';
+    ctx.fill();
+    ctx.fillStyle = bgGradient;
+    ctx.fill();
+    
+    // Border with glow
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(0, 255, 255, 0.5)';
+    ctx.shadowBlur = 15;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
+    // Draw corner decorations
+    const cornerSize = 12;
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.9)';
+    ctx.lineWidth = 2;
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(2, cornerSize + 2);
+    ctx.lineTo(2, 2);
+    ctx.lineTo(cornerSize + 2, 2);
+    ctx.stroke();
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(maxWidth - cornerSize - 2, 2);
+    ctx.lineTo(maxWidth - 2, 2);
+    ctx.lineTo(maxWidth - 2, cornerSize + 2);
+    ctx.stroke();
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(2, totalHeight - cornerSize - 2);
+    ctx.lineTo(2, totalHeight - 2);
+    ctx.lineTo(cornerSize + 2, totalHeight - 2);
+    ctx.stroke();
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(maxWidth - cornerSize - 2, totalHeight - 2);
+    ctx.lineTo(maxWidth - 2, totalHeight - 2);
+    ctx.lineTo(maxWidth - 2, totalHeight - cornerSize - 2);
+    ctx.stroke();
+    
+    let yPos = padding;
+    
+    // Draw title with glow
+    ctx.font = titleFont;
+    ctx.fillStyle = '#00ffff';
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 10;
+    ctx.textBaseline = 'top';
+    titleLines.forEach((line) => {
+        ctx.fillText(line, padding, yPos);
+        yPos += lineHeight;
+    });
+    ctx.shadowBlur = 0;
+    
+    // Divider line
+    yPos += sectionGap / 2;
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, yPos);
+    ctx.lineTo(maxWidth - padding, yPos);
+    ctx.stroke();
+    yPos += sectionGap / 2;
+    
+    // Ingredients section
+    ctx.font = labelFont;
+    ctx.fillStyle = '#80ffea';
+    ctx.shadowColor = '#80ffea';
+    ctx.shadowBlur = 6;
+    ctx.fillText('🧬 INGREDIENTS', padding, yPos);
+    ctx.shadowBlur = 0;
+    yPos += labelLineHeight + 4;
+    
+    ctx.font = contentFont;
+    ctx.fillStyle = 'rgba(200, 255, 255, 0.9)';
+    ingredientLines.forEach((line) => {
+        ctx.fillText(line, padding, yPos);
+        yPos += labelLineHeight;
+    });
+    
+    yPos += sectionGap;
+    
+    // Nutrients section
+    ctx.font = labelFont;
+    ctx.fillStyle = '#9d86ff';
+    ctx.shadowColor = '#9d86ff';
+    ctx.shadowBlur = 6;
+    ctx.fillText('⚡ NUTRIENTS', padding, yPos);
+    ctx.shadowBlur = 0;
+    yPos += labelLineHeight + 4;
+    
+    ctx.font = contentFont;
+    ctx.fillStyle = 'rgba(200, 220, 255, 0.9)';
+    nutrientLines.forEach((line) => {
+        ctx.fillText(line, padding, yPos);
+        yPos += labelLineHeight;
+    });
+    
+    // Create texture and sprite
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    
+    const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false
+    });
+    
+    const sprite = new THREE.Sprite(material);
+    const scaleFactor = 0.0009;
+    sprite.scale.set(maxWidth * scaleFactor, totalHeight * scaleFactor, 1);
+    
+    return sprite;
 }
 
 
@@ -833,17 +873,11 @@ async function startWebXRSession(modelFile) {
         xrSession.addEventListener('selectstart', handleXRSelectStart);
         xrSession.addEventListener('selectend', handleXRSelectEnd);
 
-        // Hide elements that shouldn't show in WebXR
+        // Hide info panel initially in WebXR
         const holoInfoPanel = document.getElementById('holoInfoPanel');
         if (holoInfoPanel) {
             holoInfoPanel.classList.add('hidden');
             holoInfoPanel.classList.remove('visible');
-        }
-        
-        const sizeIndicator = document.getElementById('sizeIndicator');
-        if (sizeIndicator) {
-            sizeIndicator.classList.add('hidden');
-            sizeIndicator.classList.remove('visible');
         }
 
         if (!domOverlayEnabled) {
@@ -893,10 +927,9 @@ function handleXRSelectStart(event) {
             navigator.vibrate([50, 100, 50]);
         }
         
-        // Show size indicator after placement
+        // Show info panel after placement
         setTimeout(() => {
             showHoloInfoPanel(modelFile);
-            updateSizeIndicator();
         }, 500);
     }
 }
@@ -1021,7 +1054,6 @@ function renderWebXR(timestamp, frame) {
     }
 
     updateHologramFollow();
-    updateSizeSpritePosition();
     renderer.render(scene, camera);
 }
 
@@ -1054,10 +1086,9 @@ function placeModelWebXR(hitPose) {
         navigator.vibrate([50, 100, 50]);
     }
 
-    // Show info panel and size indicator after a short delay for better UX
+    // Show info panel after a short delay for better UX
     setTimeout(() => {
         showHoloInfoPanel(modelFile);
-        updateSizeIndicator();
     }, 800);
 }
 
@@ -1167,14 +1198,15 @@ async function initThreeJS(modelFile, video) {
     // Create scene
     scene = new THREE.Scene();
     
-    // Create camera
+    // Create camera - positioned slightly higher to look down at ground
     camera = new THREE.PerspectiveCamera(
-        75,
+        60,
         window.innerWidth / window.innerHeight,
         0.1,
         1000
     );
-    camera.position.set(0, 0, 0);
+    camera.position.set(0, 0.5, 0);
+    camera.lookAt(0, 0, -2);
     
     // Create renderer
     renderer = new THREE.WebGLRenderer({ 
@@ -1215,7 +1247,7 @@ async function initThreeJS(modelFile, video) {
 // Create surface detection indicator
 function createSurfaceIndicator() {
     // Create a circular ring to show where model will be placed
-    const geometry = new THREE.RingGeometry(0.3, 0.35, 32);
+    const geometry = new THREE.RingGeometry(0.2, 0.25, 32);
     const material = new THREE.MeshBasicMaterial({ 
         color: 0x00ff00, 
         side: THREE.DoubleSide,
@@ -1224,7 +1256,7 @@ function createSurfaceIndicator() {
     });
     surfaceIndicator = new THREE.Mesh(geometry, material);
     surfaceIndicator.rotation.x = -Math.PI / 2; // Make it horizontal
-    surfaceIndicator.position.set(0, CAMERA_GROUND_Y, -2); // Position closer and centered
+    surfaceIndicator.position.set(0, CAMERA_GROUND_Y, -1.5); // Position in front of camera
     surfaceIndicator.visible = true;
     scene.add(surfaceIndicator);
     
@@ -1272,7 +1304,9 @@ function loadModel(modelFile) {
                 
                 // Get model config for initial scale and real size
                 const config = modelConfigs[modelFile];
-                const initialScale = config ? config.scale : 0.5;
+                // Use larger scale for camera mode (no WebXR depth info)
+                const baseScale = config ? config.scale : 0.5;
+                const initialScale = useWebXR ? baseScale : baseScale * 1.5;
                 
                 // Initialize real size config
                 realSizeConfig = config || null;
@@ -1431,9 +1465,6 @@ function handleTouchMove(e) {
                     modelScale = newScale;
                     model.scale.set(modelScale, modelScale, modelScale);
                     
-                    // Update size indicator with real size
-                    updateSizeIndicator();
-                    
                     // Show size feedback
                     if (realSizeConfig) {
                         const scaleRatio = modelScale / realSizeConfig.scale;
@@ -1521,14 +1552,23 @@ function handleCanvasClick(e) {
         return;
     }
     
-    const placementPoint = projectScreenPointToGround(e.clientX, e.clientY);
-    if (!placementPoint) {
-        updatePositionText('Aim toward a flat surface and try again.', { duration: 2500 });
-        return;
+    let placementPoint;
+    
+    if (!isModelPlaced) {
+        // First placement: place model in center of view for better visibility
+        placementPoint = new THREE.Vector3(0, CAMERA_GROUND_Y, -1.5);
+    } else {
+        // Subsequent placements: use screen projection
+        placementPoint = projectScreenPointToGround(e.clientX, e.clientY);
+        if (!placementPoint) {
+            updatePositionText('Tap somewhere else to move the model.', { duration: 2500 });
+            return;
+        }
     }
+    
     placementPoint.y = CAMERA_GROUND_Y;
     updateSurfaceIndicatorPosition(placementPoint);
-    const hoverOffset = 0.15;
+    const hoverOffset = 0.1;
     if (!isModelPlaced) {
         model.position.copy(placementPoint);
         model.position.y += hoverOffset;
@@ -1540,7 +1580,7 @@ function handleCanvasClick(e) {
         const modelFile = getModelFromURL();
         const config = modelConfigs[modelFile];
         realSizeConfig = config || null;
-        updatePositionText(`Model placed! Real size: ${config?.realSizeCm || 25} cm`);
+        updatePositionText(`Tap to place • Pinch to resize • Drag to rotate`, { duration: 3000 });
         const startScale = modelScale * 0.1;
         const targetScale = modelScale;
         let progress = 0;
@@ -1553,7 +1593,6 @@ function handleCanvasClick(e) {
                 model.scale.set(targetScale, targetScale, targetScale);
                 clearInterval(placeAnimation);
                 showHoloInfoPanel(modelFile);
-                updateSizeIndicator();
             }
         }, 16);
         if (navigator.vibrate) {
@@ -1583,9 +1622,6 @@ function scaleModel(factor) {
     modelScale = Math.max(minScale, Math.min(maxScale, newScale));
     
     model.scale.set(modelScale, modelScale, modelScale);
-    
-    // Update size indicator
-    updateSizeIndicator();
     
     // Show size feedback
     if (realSizeConfig) {
@@ -1624,7 +1660,6 @@ function resetModel() {
     model.rotation.set(0, 0, 0);
     
     if (isModelPlaced) {
-        updateSizeIndicator();
         updatePositionText(`📏 Reset to real size: ${config?.realSizeCm || 25} cm`);
         
         // Haptic feedback
@@ -1638,13 +1673,8 @@ function resetModel() {
         }
         updatePositionText('Tap screen to place model');
         
-        // Hide info panel and size indicator when model is reset to not placed
+        // Hide info panel when model is reset to not placed
         hideHoloInfoPanel();
-        const sizeIndicator = document.getElementById('sizeIndicator');
-        if (sizeIndicator) {
-            sizeIndicator.classList.add('hidden');
-            sizeIndicator.classList.remove('visible');
-        }
     }
 }
 
@@ -1737,9 +1767,6 @@ function handleMouseWheel(e) {
         modelScale = newScale;
         model.scale.set(modelScale, modelScale, modelScale);
         
-        // Update size indicator
-        updateSizeIndicator();
-        
         // Show size feedback
         if (realSizeConfig) {
             const scaleRatio = modelScale / realSizeConfig.scale;
@@ -1788,7 +1815,6 @@ function exitAR() {
         scene.clear();
     }
     hologramGroup = null;
-    sizeSprite = null;
     hideStatusMessage();
     
     // Go back to frontend menu
