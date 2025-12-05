@@ -406,7 +406,7 @@ body {
 
 .holo-info-panel {
     position: absolute;
-    top: 15px;
+    top: 75px;
     left: 15px;
     transform: none;
     z-index: 50;
