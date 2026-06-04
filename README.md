@@ -329,8 +329,6 @@ AI Assistant
 ---
 
 ## QR code
-
 ### Snan Me
-![Snan Me](images/The Digital Plate.png)
-
+![Snan Me](images/The-Digital-Plate.png)
 ---
