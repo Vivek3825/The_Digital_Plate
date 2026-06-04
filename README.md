@@ -74,16 +74,16 @@ A **next-generation restaurant menu** that uses **Augmented Reality** to display
 │                           PHOTOGRAMMETRY WORKFLOW                                   │
 ├─────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                     │
-│   📱 CAPTURE          🔄 PROCESS           🎨 REFINE           📦 EXPORT           │
-│   ───────────────     ─────────────────    ──────────────      ──────────          │
+│   📱 CAPTURE          🔄 PROCESS           🎨 REFINE           📦 EXPORT            │
+│   ───────────────     ─────────────────    ──────────────      ──────────           │
 │                                                                                     │
-│   ┌─────────┐         ┌─────────────┐      ┌────────────┐      ┌────────┐          │
-│   │  Mobile │   ───►  │  Meshroom   │ ───► │   Clean    │ ───► │  .GLB  │          │
-│   │  Photos │         │  Kiri Engine│      │  Optimize  │      │  File  │          │
-│   └─────────┘         └─────────────┘      └────────────┘      └────────┘          │
+│   ┌─────────┐         ┌─────────────┐      ┌────────────┐      ┌────────┐           │
+│   │  Mobile │   ───►  │  Meshroom   │ ───► │   Clean    │ ───► │  .GLB  │           │
+│   │  Photos │         │  Kiri Engine│      │  Optimize  │      │  File  │           │
+│   └─────────┘         └─────────────┘      └────────────┘      └────────┘           │
 │                                                                                     │
-│   50-100 photos       Point cloud →        Remove noise        Web-ready           │
-│   360° coverage       Dense mesh           Texture fix         Compressed          │
+│   50-100 photos       Point cloud →        Remove noise        Web-ready            │
+│   360° coverage       Dense mesh           Texture fix         Compressed           │
 │                                                                                     │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ```
